@@ -3,6 +3,7 @@
 from airflow import models
 from airflow.operators.empty import EmptyOperator
 from airflow.operators.python import PythonOperator
+from airflow.operators.python import BranchPythonOperator
 from airflow.utils import timezone
 
 DEFAULT_DATE = timezone.datetime(2016, 1, 1)
@@ -40,6 +41,26 @@ def branching_dag() -> models.DAG:
         op1 >> op2
         op1 >> op3
 
+    return the_dag
+
+
+def dag_with_branching_operator() -> models.DAG:
+    the_dag = models.DAG(
+        'dag_with_a_branching_operator',
+        schedule_interval="@once",
+        start_date=DEFAULT_DATE,
+    )
+    with the_dag:
+        op = EmptyOperator(task_id='task_1')
+        branch_op = BranchPythonOperator(
+            task_id='branching_boi',
+            python_callable=lambda : 'run_task_B')
+
+        task_A = EmptyOperator(task_id='task_A')
+        task_B = EmptyOperator(task_id='task_B')
+        op >> branch_op
+        branch_op >> task_A
+        branch_op >> task_B
     return the_dag
 
 

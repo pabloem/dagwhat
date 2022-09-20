@@ -21,7 +21,7 @@ from parameterized import parameterized
 
 
 from dagwhat.dagwhat import *
-from dagwhat.test.dagwhat_test_example_dags_utils import basic_dag, branching_either_or_dag
+from dagwhat.test.dagwhat_test_example_dags_utils import basic_dag, branching_either_or_dag, dag_with_branching_operator
 
 
 class DagwhatSimpleApiTests(unittest.TestCase):
@@ -52,6 +52,21 @@ class DagwhatSimpleApiTests(unittest.TestCase):
                 .when(task('task_1'), fails())
                 .then(task('task_2'), does_not_run()))
 
+    def test_dag_with_branching_operator(self):
+        """Test only that the API works as expected."""
+        thedag = dag_with_branching_operator()
+
+        assert_that(
+            given(thedag)
+                .when(task('branching_boi'), returns('task_A'))
+                .then(task('task_A'), will_run()))
+
+        with self.assertRaises(AssertionError):
+            assert_that(
+                given(thedag)
+                    .when(task('branching_boi'), returns('task_A'))
+                    .then(task('task_B'), will_run()))
+
     def test_api_throws_for_unexpected_run(self):
         """Test only that the API works as expected."""
         thedag = basic_dag()
@@ -61,6 +76,17 @@ class DagwhatSimpleApiTests(unittest.TestCase):
                 given(thedag)
                     .when(task('task_1'), succeeds())
                     .then(task('task_2'), does_not_run()))
+
+    def test_dag_failure_or_success_check(self):
+        """Test only that the API works as expected."""
+        self.skipTest("DAG selection for validations is not supportd yet.")
+        thedag = basic_dag()
+
+        with self.assertRaises(AssertionError):
+            assert_that(
+                given(thedag)
+                    .when(task('task_1'), succeeds())
+                    .then(the_dag(), fails()))
 
     def test_api_throws_for_unexpected_not_run(self):
         """Test only that the API works as expected."""
