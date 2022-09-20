@@ -1,0 +1,21 @@
+**/venv
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/*.egg-info/
+**/.eggs/
+**/nose-*.egg/
+**/.tox/**/*
+**/dist/**/*
+**/distribute-*/**/*
+**/env/**/*
+**/.mypy_cache
+**/.dmypy.json
+**/*~
+
+# Ignore IntelliJ files.
+* */.idea/**/*
+**/*.iml
+**/*.ipr
+**/*.iws
+**/out/**/*

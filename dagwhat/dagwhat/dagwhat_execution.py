@@ -43,12 +43,11 @@ class HypothesisExecutor(DebugExecutor):
         # PythonOperators need to be patched because we often need to run
         # the execute_callable function - particularly for Branching operators.
         if isinstance(ti.task.roots[0], PythonOperator):
-            # TODO(pabloem): Make this a bound method. I forgot how for now.
             original_lambda = getattr(ti.task.roots[0], 'execute_callable')
             def new_lambda(*args, **kwargs):
                 return to.return_value
             setattr(ti.task.roots[0], 'execute_callable', new_lambda)
-            ti.task.roots[0].execute({'dag': ti.task.dag, 'ti': ti})
+            ti.task.roots[0].execute({'dag': ti.task.dag, 'ti': ti, 'task': ti.task, 'dag_run': ti.dag_run})
             setattr(ti.task.roots[0], 'execute_callable', original_lambda)
 
     def _run_task(self, ti: TaskInstance) -> bool:

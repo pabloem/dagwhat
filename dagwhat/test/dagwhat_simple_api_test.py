@@ -21,13 +21,13 @@ from parameterized import parameterized
 
 
 from dagwhat.dagwhat import *
-from dagwhat.test.dagwhat_test_example_dags_utils import basic_dag, branching_either_or_dag, dag_with_branching_operator
+from dagwhat.test.dagwhat_test_example_dags_utils import basic_dag, branching_either_or_dag, \
+    dag_with_branching_operator, dag_with_shorting_operator
 
 
 class DagwhatSimpleApiTests(unittest.TestCase):
 
     def test_api_base_case(self):
-        """Test only that the API works as expected."""
         thedag = basic_dag()
 
         assert_that(
@@ -44,7 +44,6 @@ class DagwhatSimpleApiTests(unittest.TestCase):
                     .then(task('task_3'), may_run()))
 
     def test_api_negative_base_case(self):
-        """Test only that the API works as expected."""
         thedag = basic_dag()
 
         assert_that(
@@ -53,7 +52,6 @@ class DagwhatSimpleApiTests(unittest.TestCase):
                 .then(task('task_2'), does_not_run()))
 
     def test_dag_with_branching_operator(self):
-        """Test only that the API works as expected."""
         thedag = dag_with_branching_operator()
 
         assert_that(
@@ -67,8 +65,21 @@ class DagwhatSimpleApiTests(unittest.TestCase):
                     .when(task('branching_boi'), returns('task_A'))
                     .then(task('task_B'), will_run()))
 
+    def test_dag_with_shorting_operator(self):
+        thedag = dag_with_shorting_operator()
+
+        assert_that(
+            given(thedag)
+                .when(task('shorting_boi'), returns(False))
+                .then(task('task_A'), does_not_run()))
+
+        with self.assertRaises(AssertionError):
+            assert_that(
+                given(thedag)
+                    .when(task('shorting_boi'), returns(False))
+                    .then(task('task_A'), may_run()))
+
     def test_api_throws_for_unexpected_run(self):
-        """Test only that the API works as expected."""
         thedag = basic_dag()
 
         with self.assertRaises(AssertionError):

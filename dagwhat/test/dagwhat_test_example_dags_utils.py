@@ -2,7 +2,7 @@
 
 from airflow import models
 from airflow.operators.empty import EmptyOperator
-from airflow.operators.python import PythonOperator
+from airflow.operators.python import PythonOperator, ShortCircuitOperator
 from airflow.operators.python import BranchPythonOperator
 from airflow.utils import timezone
 
@@ -61,6 +61,24 @@ def dag_with_branching_operator() -> models.DAG:
         op >> branch_op
         branch_op >> task_A
         branch_op >> task_B
+    return the_dag
+
+
+def dag_with_shorting_operator() -> models.DAG:
+    the_dag = models.DAG(
+        'dag_with_a_shorting_operator',
+        schedule_interval="@once",
+        start_date=DEFAULT_DATE,
+    )
+    with the_dag:
+        op = EmptyOperator(task_id='task_1')
+        branch_op = ShortCircuitOperator(
+            task_id='shorting_boi',
+            python_callable=lambda : True)
+
+        task_A = EmptyOperator(task_id='task_A')
+        op >> branch_op
+        branch_op >> task_A
     return the_dag
 
 
