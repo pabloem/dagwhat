@@ -39,7 +39,10 @@ class DagwhatTaskSelectorTest(unittest.TestCase):
         task_groups = cases.generate_task_groups(thedag)
         self.assertListEqual(
             task_groups,
-            [[(task_id, thedag.task_dict[task_id])] for _ in range(tasks_found)],
+            [
+                [(task_id, thedag.task_dict[task_id])]
+                for _ in range(tasks_found)
+            ],
         )
 
     @parameterized.expand(

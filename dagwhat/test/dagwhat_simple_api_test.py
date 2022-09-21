@@ -19,7 +19,8 @@ import unittest
 
 from parameterized import parameterized
 
-from dagwhat import *
+from dagwhat import assert_that, given, the_dag, task, succeeds, will_run
+from dagwhat import returns, does_not_run, fails, may_run
 from dagwhat.test.dagwhat_test_example_dags_utils import (
     basic_dag,
     branching_either_or_dag,
@@ -105,7 +106,9 @@ class DagwhatSimpleApiTests(unittest.TestCase):
 
         with self.assertRaises(AssertionError):
             assert_that(
-                given(thedag).when(task("task_1"), succeeds()).then(the_dag(), fails())
+                given(thedag)
+                .when(task("task_1"), succeeds())
+                .then(the_dag(), fails())
             )
 
     def test_api_throws_for_unexpected_not_run(self):
@@ -123,11 +126,15 @@ class DagwhatSimpleApiTests(unittest.TestCase):
         thedag = branching_either_or_dag()
 
         assert_that(
-            given(thedag).when(task("task_1"), fails()).then(task("task_2"), will_run())
+            given(thedag)
+            .when(task("task_1"), fails())
+            .then(task("task_2"), will_run())
         )
 
         assert_that(
-            given(thedag).when(task("task_1"), fails()).then(task("task_3"), will_run())
+            given(thedag)
+            .when(task("task_1"), fails())
+            .then(task("task_3"), will_run())
         )
 
         with self.assertRaises(AssertionError):
@@ -200,7 +207,8 @@ class DagwhatEnsureCorrectUseTest(unittest.TestCase):
         self.assertEqual(
             log.records[0].message,
             "A dagwhat test has been defined, but was not tested.\n\t"
-            "Please wrap your test with assert_that to make sure checks will run.",
+            "Please wrap your test with assert_that to make sure checks"
+            " will run.",
         )
 
 

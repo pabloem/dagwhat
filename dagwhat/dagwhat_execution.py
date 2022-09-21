@@ -49,7 +49,9 @@ class HypothesisExecutor(DebugExecutor):
         # PythonOperators need to be patched because we often need to run
         # the execute_callable function - particularly for Branching operators.
         if isinstance(task_instance.task.roots[0], PythonOperator):
-            original_lambda = getattr(task_instance.task.roots[0], "execute_callable")
+            original_lambda = getattr(
+                task_instance.task.roots[0], "execute_callable"
+            )
 
             def new_lambda(*unused_args, **unused_kwargs):
                 return task_outcome.return_value
@@ -63,39 +65,43 @@ class HypothesisExecutor(DebugExecutor):
                     "dag_run": task_instance.dag_run,
                 }
             )
-            setattr(task_instance.task.roots[0], "execute_callable", original_lambda)
+            setattr(
+                task_instance.task.roots[0], "execute_callable", original_lambda
+            )
 
     def _run_task(self, ti: TaskInstance) -> bool:
         if ti.task_id in self.assumed_tasks_and_outcomes:
-            # Assert that this assumed outcome is among correct assumable outcomes,
-            # or is a returns('value') outcome.
+            # Assert that this assumed outcome is among correct assumable
+            # outcomes, or is a returns('value') outcome.
             assert self.assumed_tasks_and_outcomes[
                 ti.task_id
             ] in base.TaskOutcome.ASSUMABLE_OUTCOMES or isinstance(
                 self.assumed_tasks_and_outcomes[ti.task_id], base.TaskOutcome
             )
-            self.actual_task_results[ti.task_id] = self.assumed_tasks_and_outcomes[
+            self.actual_task_results[
                 ti.task_id
-            ]
+            ] = self.assumed_tasks_and_outcomes[ti.task_id]
             if self.assumed_tasks_and_outcomes[
                 ti.task_id
             ] == base.TaskOutcome.SUCCESS or isinstance(
                 self.assumed_tasks_and_outcomes[ti.task_id], base.TaskOutcome
             ):
-                # TODO(pabloem): Patch Python Operators to execute a simple lambda
+                # TODO(pabloem): Patch Python Operators to execute a lambda
                 self._patch_and_execute_operator(
                     ti, self.assumed_tasks_and_outcomes[ti.task_id]
                 )
                 self.change_state(ti.key, State.SUCCESS)
                 ti.set_state(State.SUCCESS)
             elif (
-                self.assumed_tasks_and_outcomes[ti.task_id] == base.TaskOutcome.FAILURE
+                self.assumed_tasks_and_outcomes[ti.task_id]
+                == base.TaskOutcome.FAILURE
             ):
                 self.change_state(ti.key, State.FAILED)
                 ti.set_state(State.FAILED)
             else:
                 raise ValueError(
-                    "The outcome %r is not acceptable (or not supported) for task %r"
+                    "The outcome %r is not acceptable (or not supported) "
+                    "for task %r"
                     % (self.assumed_tasks_and_outcomes[ti.task_id], ti.task_id)
                 )
         elif ti.task_id in self.expected_tasks_and_outcomes:
@@ -103,8 +109,9 @@ class HypothesisExecutor(DebugExecutor):
                 self.expected_tasks_and_outcomes[ti.task_id]
                 in base.TaskOutcome.EXPECTABLE_OUTCOMES
             )
-            # We cannot know whether the task will fail or succeed. We can only know that
-            # it has been reached, and under the current conditions it will run.
+            # We cannot know whether the task will fail or succeed. We can
+            # only know that it has been reached, and under the current
+            # conditions it will run.
             ti.set_state(State.SUCCESS)
             self.actual_task_results[ti.task_id] = TaskOutcome.RUNS
 
@@ -127,7 +134,9 @@ class HypothesisExecutor(DebugExecutor):
         return ti.state == State.SUCCESS
 
 
-def _next_simulation(previous_simulation: typing.List[typing.Tuple[str, TaskOutcome]]):
+def _next_simulation(
+    previous_simulation: typing.List[typing.Tuple[str, TaskOutcome]]
+):
     result = []
     flips_done = False
     for i in reversed(range(len(previous_simulation))):
@@ -161,7 +170,9 @@ def _evaluate_assumption_and_expectation(
         )
 
         hypothesis_executor = dagwhat.dagwhat_execution.HypothesisExecutor(
-            assumed_tasks_and_outs, expected_tasks_and_outs, dict(current_simulation)
+            assumed_tasks_and_outs,
+            expected_tasks_and_outs,
+            dict(current_simulation),
         )
         dag.clear()
         try:
@@ -176,7 +187,7 @@ def _evaluate_assumption_and_expectation(
             )
             != assumed_tasks_and_outs.keys()
         ):
-            # We must not consider this run because it cannot meet the assumed conditions.
+            # Will not consider this run because it does not meet assumptions.
             continue
 
         print(
@@ -194,7 +205,7 @@ def _evaluate_assumption_and_expectation(
             )
         )
 
-        # TODO(pabloem): We should create a new ENUM for test outcomes rather than
+        # TODO(pabloem): We should create a new ENUM for test outcomes and not
         #    reutilizing the TaskOutcome ENUM.
         simulation_results.append(hypothesis_executor.actual_task_results)
 
@@ -207,10 +218,11 @@ def _evaluate_assumption_and_expectation(
                 result == TaskOutcome.RUNS
                 and expected_tasks_and_outs[task_id] == TaskOutcome.WILL_NOT_RUN
             )
-            for task_id, result in hypothesis_executor.actual_task_results.items()
+            for task_id, result
+            in hypothesis_executor.actual_task_results.items()
         ):
             return True, False, simulation_results
-        elif any(
+        if any(
             (
                 result == TaskOutcome.RUNS
                 and expected_tasks_and_outs[task_id] == TaskOutcome.MAY_RUN
@@ -219,7 +231,8 @@ def _evaluate_assumption_and_expectation(
                 result == TaskOutcome.NOT_RUN
                 and expected_tasks_and_outs[task_id] == TaskOutcome.MAY_NOT_RUN
             )
-            for task_id, result in hypothesis_executor.actual_task_results.items()
+            for task_id, result
+            in hypothesis_executor.actual_task_results.items()
         ):
             return False, True, simulation_results
 
@@ -231,19 +244,26 @@ def run_check(check: "FinalTaskTestCheck"):
 
     # TODO(pabloem): Support multiple test conditions.
     #  The code below assumes only single test conditions.
-    assumed_task_selector, assumed_outcome = check.task_test_condition.condition_chain[0]
+    (
+        assumed_task_selector,
+        assumed_outcome,
+    ) = check.task_test_condition.condition_chain[0]
 
     # TODO(pabloem): Support multiple test conditions.
     #  The code below assumes only single test conditions.
     expected_task_selector, expected_outcome = check.validation_chain[0]
 
-    for matching_taskgroup in assumed_task_selector.generate_task_groups(check.dag):
+    for matching_taskgroup in assumed_task_selector.generate_task_groups(
+        check.dag
+    ):
         assumed_tasks_and_ops = dict(matching_taskgroup)
-        assumed_tasks_and_outs = {t: assumed_outcome for t in assumed_tasks_and_ops}
+        assumed_tasks_and_outs = {
+            t: assumed_outcome for t in assumed_tasks_and_ops
+        }
 
-        for expected_matching_taskgroup in expected_task_selector.generate_task_groups(
-            check.dag
-        ):
+        for (
+            expected_matching_taskgroup
+        ) in expected_task_selector.generate_task_groups(check.dag):
             expected_tasks_and_ops = dict(expected_matching_taskgroup)
             expected_tasks_and_outs = {
                 t: expected_outcome for t in expected_tasks_and_ops
@@ -282,11 +302,11 @@ def run_check(check: "FinalTaskTestCheck"):
                 print("RAN %s iterations" % len(all_resulting_outcomes))
                 return
 
-        success = all(
+        # If we are not successful, then we return an assertion error
+        if not all(
             _task_expectation_matches_outcomes(t, e, all_resulting_outcomes[0])
             for t, e in expected_tasks_and_outs.items()
-        )
-        if not success:
+        ):
             raise AssertionError(
                 "Failures - \n\tExpected: %r \n\tActuals: %r"
                 % (expected_tasks_and_outs, all_resulting_outcomes)
@@ -295,7 +315,9 @@ def run_check(check: "FinalTaskTestCheck"):
 
 def _task_expectation_matches_outcomes(task, expectation, outcomes):
     operator = (
-        all if expectation in (TaskOutcome.WILL_RUN, TaskOutcome.WILL_NOT_RUN) else any
+        all
+        if expectation in (TaskOutcome.WILL_RUN, TaskOutcome.WILL_NOT_RUN)
+        else any
     )
     value = (
         TaskOutcome.RUNS

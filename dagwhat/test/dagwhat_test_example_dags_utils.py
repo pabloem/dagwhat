@@ -23,7 +23,9 @@ def basic_dag() -> models.DAG:
             op1
             >> op2
             >> op3
-            >> PythonOperator(task_id="task_4", python_callable=lambda: print("DONE"))
+            >> PythonOperator(
+                task_id="task_4", python_callable=lambda: print("DONE")
+            )
         )
 
     return the_dag

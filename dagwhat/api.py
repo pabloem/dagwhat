@@ -16,7 +16,12 @@
 # specific language governing permissions and limitations
 # under the License.
 
-from dagwhat.base import *
+from airflow.models import DAG
+from dagwhat.base import DagSelector
+from dagwhat.base import DagTest
+from dagwhat.base import TaskTestCheckBuilder
+from dagwhat.base import TaskGroupSelector
+from dagwhat.base import TaskOutcome
 
 
 __all__ = [
@@ -46,7 +51,7 @@ def given(dag: DAG) -> "DagTest":
 
 
 ##############################################################################
-#### TASK SELECTORS ########
+# TASK SELECTORS
 ##############################################################################
 def task(task_id):
     return TaskGroupSelector(ids=[task_id], group_is=TaskGroupSelector.ALL)
@@ -69,16 +74,16 @@ def all_tasks(with_id=None, with_operator=None):
 
 
 def the_dag():
-    """A selector representing the fact that the WHOLE dag execution will fail."""
+    """A selector representing the whole DAG execution."""
     return DagSelector
 
 
 ##############################################################################
-#### END TASK SELECTORS ########
+# END TASK SELECTORS
 ##############################################################################
 
 ##############################################################################
-#### OUTCOME CHECKERS ########
+# OUTCOME CHECKERS
 ##############################################################################
 
 
@@ -121,5 +126,5 @@ def will_run() -> TaskOutcome:
 
 
 ##############################################################################
-#### END OUTCOME CHECKERS ########
+# END OUTCOME CHECKERS
 ##############################################################################

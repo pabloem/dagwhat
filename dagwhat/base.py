@@ -46,7 +46,10 @@ class TaskOutcome:
 
     @classmethod
     def assert_expectable(cls, outcome: "TaskOutcome"):
-        if isinstance(outcome, str) and outcome not in TaskOutcome.EXPECTABLE_OUTCOMES:
+        if (
+            isinstance(outcome, str)
+            and outcome not in TaskOutcome.EXPECTABLE_OUTCOMES
+        ):
             raise ValueError(
                 f"Task or dag outcome {outcome} cannot be asserted on."
                 f" Use one of {TaskOutcome.EXPECTABLE_OUTCOMES} instead."
@@ -54,12 +57,14 @@ class TaskOutcome:
 
     @classmethod
     def assert_assumable(cls, outcome: "TaskOutcome"):
-        if isinstance(outcome, str) and outcome not in TaskOutcome.ASSUMABLE_OUTCOMES:
+        if (
+            isinstance(outcome, str)
+            and outcome not in TaskOutcome.ASSUMABLE_OUTCOMES
+        ):
             raise ValueError(
-                f"Task or dag outcome {outcome} cannot be used as a DAG assumption."
+                f"Task or dag outcome {outcome} cannot be used as assumption."
                 f" Use one of {TaskOutcome.ASSUMABLE_OUTCOMES} instead."
             )
-
 
 
 class TaskGroupSelector:
@@ -70,7 +75,9 @@ class TaskGroupSelector:
         self,
         ids: typing.Optional[typing.Collection[str]] = None,
         operators: typing.Optional[typing.Set[typing.Type[Operator]]] = None,
-        group_is: typing.Union["TaskGroupSelector.ALL", "TaskGroupSelector.ANY"] = None,
+        group_is: typing.Union[
+            "TaskGroupSelector.ALL", "TaskGroupSelector.ANY"
+        ] = None,
     ):
         self.ids = ids
         self.operators = operators
@@ -112,19 +119,6 @@ class TaskGroupSelector:
         return [matching_tasks]
 
 
-class TaskTestConditionGenerator:
-    """TODO(pabloem): Must document.
-
-    When defining a DagTest, we establish invariants for tasks.
-
-    A `TaskTestConditionGenerator` receives a specfication that allows it to
-    generate test cases (or test situations).
-    """
-
-    def __init__(self, task_selector):
-        self.task_selector = task_selector
-
-
 class DagSelector:
     pass
 
@@ -134,7 +128,9 @@ class FinalTaskTestCheck:
         self,
         dag: DAG,
         task_test_condition: "TaskTestBuilder",
-        validation_chain: typing.List[typing.Tuple[TaskGroupSelector, TaskOutcome]],
+        validation_chain: typing.List[
+            typing.Tuple[TaskGroupSelector, TaskOutcome]
+        ],
     ):
         self.dag = dag
         self.task_test_condition = task_test_condition
@@ -152,10 +148,15 @@ class TaskTestCheckBuilder:
         ] = []
         self.checked = False
 
+    def and_(self, task_selector, task_outcome):
+        raise NotImplementedError('Not yet implemented sorry')
+
     def add_check(
         self, task_or_dag_selector, task_or_dag_outcome
     ) -> "TaskTestCheckBuilder":
-        self.validation_chain.append((task_or_dag_selector, task_or_dag_outcome))
+        self.validation_chain.append(
+            (task_or_dag_selector, task_or_dag_outcome)
+        )
         return self
 
     def __del__(self):
@@ -225,10 +226,14 @@ class TaskTestBuilder:
     def and_(self, task_selector, outcome) -> "TaskTestBuilder":
         # self.condition_chain.append((task_selector, outcome))
         # return self
-        raise NotImplementedError("Additive test conditions are not yet supported.")
+        raise NotImplementedError(
+            "Additive test conditions are not yet supported."
+        )
 
     def then(
-        self, task_or_dag_selector, task_or_dag_outcome: typing.Union[TaskOutcome, str]
+        self,
+        task_or_dag_selector,
+        task_or_dag_outcome: typing.Union[TaskOutcome, str],
     ) -> TaskTestCheckBuilder:
         TaskOutcome.assert_expectable(task_or_dag_outcome)
         check_builder = TaskTestCheckBuilder(self)
