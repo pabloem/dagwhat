@@ -30,9 +30,9 @@ class TaskOutcome:
     SUCCESS = "SUCCESS"
     FAILURE = "FAILURE"
     RUNS = "RUNS"
-    NOT_RUN = "NOT_RUN"  # TODO(pabloem): Document - this represents the task never running in a DAG run.
-    MAY_RUN = "MAY_RUN"  # TODO(pabloem): Document - this represents the opposite of WILL NOT RUN
-    MAY_NOT_RUN = "MAY_NOT_RUN"  # TODO(pabloem): Document - this represents the opposite of WILL_RUN
+    NOT_RUN = "NOT_RUN"  # TODO(pabloem): Document
+    MAY_RUN = "MAY_RUN"  # TODO(pabloem): Document
+    MAY_NOT_RUN = "MAY_NOT_RUN"  # TODO(pabloem): Document
     WILL_RUN = "WILL_RUN"
     WILL_NOT_RUN = "WILL_NOT_RUN"
     # TODO(pabloem): Support tasks failing and being retried, etc.
@@ -48,21 +48,18 @@ class TaskOutcome:
     def assert_expectable(cls, outcome: "TaskOutcome"):
         if isinstance(outcome, str) and outcome not in TaskOutcome.EXPECTABLE_OUTCOMES:
             raise ValueError(
-                "Task or dag outcome %r cannot be asserted on."
-                " Use one of %r instead." % (outcome, TaskOutcome.EXPECTABLE_OUTCOMES)
+                f"Task or dag outcome {outcome} cannot be asserted on."
+                f" Use one of {TaskOutcome.EXPECTABLE_OUTCOMES} instead."
             )
 
     @classmethod
     def assert_assumable(cls, outcome: "TaskOutcome"):
         if isinstance(outcome, str) and outcome not in TaskOutcome.ASSUMABLE_OUTCOMES:
             raise ValueError(
-                "Task or dag outcome %r cannot be used as a DAG assumption."
-                " Use one of %r instead." % (outcome, TaskOutcome.ASSUMABLE_OUTCOMES)
+                f"Task or dag outcome {outcome} cannot be used as a DAG assumption."
+                f" Use one of {TaskOutcome.ASSUMABLE_OUTCOMES} instead."
             )
 
-
-class DagSelector:
-    pass
 
 
 class TaskGroupSelector:
@@ -111,9 +108,8 @@ class TaskGroupSelector:
 
         if self.group_is == TaskGroupSelector.ANY:
             return [[id_op] for id_op in matching_tasks]
-        else:
-            assert self.group_is == TaskGroupSelector.ALL
-            return [matching_tasks]
+        assert self.group_is == TaskGroupSelector.ALL
+        return [matching_tasks]
 
 
 class TaskTestConditionGenerator:
@@ -127,6 +123,10 @@ class TaskTestConditionGenerator:
 
     def __init__(self, task_selector):
         self.task_selector = task_selector
+
+
+class DagSelector:
+    pass
 
 
 class FinalTaskTestCheck:
@@ -152,7 +152,7 @@ class TaskTestCheckBuilder:
         ] = []
         self.checked = False
 
-    def _add_check(
+    def add_check(
         self, task_or_dag_selector, task_or_dag_outcome
     ) -> "TaskTestCheckBuilder":
         self.validation_chain.append((task_or_dag_selector, task_or_dag_outcome))
@@ -169,12 +169,12 @@ class TaskTestCheckBuilder:
                 "will run."
             )
 
-    def _mark_checked(self):
+    def mark_checked(self):
         self.checked = True
-        self.task_test_condition._mark_checked()
+        self.task_test_condition.mark_checked()
 
     def build(self):
-        self._mark_checked()
+        self.mark_checked()
         return FinalTaskTestCheck(
             self.task_test_condition.dag_test.dag,
             self.task_test_condition,
@@ -207,9 +207,9 @@ class TaskTestBuilder:
         self.condition_chain_method = "AND"
         self.checked = False
 
-    def _mark_checked(self):
+    def mark_checked(self):
         self.checked = True
-        self.dag_test._mark_checked()
+        self.dag_test.mark_checked()
 
     def __del__(self):
         if not self.checked:
@@ -232,7 +232,7 @@ class TaskTestBuilder:
     ) -> TaskTestCheckBuilder:
         TaskOutcome.assert_expectable(task_or_dag_outcome)
         check_builder = TaskTestCheckBuilder(self)
-        check_builder._add_check(task_or_dag_selector, task_or_dag_outcome)
+        check_builder.add_check(task_or_dag_selector, task_or_dag_outcome)
         return check_builder
 
 
@@ -243,7 +243,7 @@ class DagTest:
         self.dag = dag
         self.checked = False
 
-    def _mark_checked(self):
+    def mark_checked(self):
         self.checked = True
 
     def __del__(self):

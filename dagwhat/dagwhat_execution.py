@@ -35,7 +35,7 @@ class HypothesisExecutor(DebugExecutor):
         expected_tasks_and_outcomes: typing.Mapping[str, "base.TaskOutcome"],
         simulated_tasks_and_outcomes: typing.Mapping[str, "base.TaskOutcome"],
     ):
-        super(HypothesisExecutor, self).__init__()
+        super().__init__()
         self.assumed_tasks_and_outcomes = assumed_tasks_and_outcomes
         self.expected_tasks_and_outcomes = expected_tasks_and_outcomes
         self.actual_task_results: typing.MutableMapping = {
@@ -43,25 +43,32 @@ class HypothesisExecutor(DebugExecutor):
         }
         self.simulated_tasks_and_outcomes = simulated_tasks_and_outcomes
 
-    def _patch_and_execute_operator(self, ti: TaskInstance, to: base.TaskOutcome):
+    def _patch_and_execute_operator(
+        self, task_instance: TaskInstance, task_outcome: base.TaskOutcome
+    ):
         # PythonOperators need to be patched because we often need to run
         # the execute_callable function - particularly for Branching operators.
-        if isinstance(ti.task.roots[0], PythonOperator):
-            original_lambda = getattr(ti.task.roots[0], "execute_callable")
+        if isinstance(task_instance.task.roots[0], PythonOperator):
+            original_lambda = getattr(task_instance.task.roots[0], "execute_callable")
 
-            def new_lambda(*args, **kwargs):
-                return to.return_value
+            def new_lambda(*unused_args, **unused_kwargs):
+                return task_outcome.return_value
 
-            setattr(ti.task.roots[0], "execute_callable", new_lambda)
-            ti.task.roots[0].execute(
-                {"dag": ti.task.dag, "ti": ti, "task": ti.task, "dag_run": ti.dag_run}
+            setattr(task_instance.task.roots[0], "execute_callable", new_lambda)
+            task_instance.task.roots[0].execute(
+                {
+                    "dag": task_instance.task.dag,
+                    "ti": task_instance,
+                    "task": task_instance.task,
+                    "dag_run": task_instance.dag_run,
+                }
             )
-            setattr(ti.task.roots[0], "execute_callable", original_lambda)
+            setattr(task_instance.task.roots[0], "execute_callable", original_lambda)
 
     def _run_task(self, ti: TaskInstance) -> bool:
         if ti.task_id in self.assumed_tasks_and_outcomes:
-            # Assert that this assumed outcome is among correct assumable outcomes, or is a returns('value')
-            # outcome.
+            # Assert that this assumed outcome is among correct assumable outcomes,
+            # or is a returns('value') outcome.
             assert self.assumed_tasks_and_outcomes[
                 ti.task_id
             ] in base.TaskOutcome.ASSUMABLE_OUTCOMES or isinstance(
@@ -96,8 +103,8 @@ class HypothesisExecutor(DebugExecutor):
                 self.expected_tasks_and_outcomes[ti.task_id]
                 in base.TaskOutcome.EXPECTABLE_OUTCOMES
             )
-            # We cannot know whether the task will fail or succeed. We can only know that it has been reached,
-            # and under the current assumed conditions, the task will run.
+            # We cannot know whether the task will fail or succeed. We can only know that
+            # it has been reached, and under the current conditions it will run.
             ti.set_state(State.SUCCESS)
             self.actual_task_results[ti.task_id] = TaskOutcome.RUNS
 
@@ -169,7 +176,7 @@ def _evaluate_assumption_and_expectation(
             )
             != assumed_tasks_and_outs.keys()
         ):
-            # We must not count this run as part of the rest because it cannot meet the assumed conditions.
+            # We must not consider this run because it cannot meet the assumed conditions.
             continue
 
         print(
@@ -220,26 +227,22 @@ def _evaluate_assumption_and_expectation(
 
 
 def run_check(check: "FinalTaskTestCheck"):
-    dag = check.dag
-    condition_tester = check.task_test_condition
-    validations_to_apply = check.validation_chain
-
     all_resulting_outcomes = []
 
     # TODO(pabloem): Support multiple test conditions.
     #  The code below assumes only single test conditions.
-    assumed_task_selector, assumed_outcome = condition_tester.condition_chain[0]
+    assumed_task_selector, assumed_outcome = check.task_test_condition.condition_chain[0]
 
     # TODO(pabloem): Support multiple test conditions.
     #  The code below assumes only single test conditions.
-    expected_task_selector, expected_outcome = validations_to_apply[0]
+    expected_task_selector, expected_outcome = check.validation_chain[0]
 
-    for matching_taskgroup in assumed_task_selector.generate_task_groups(dag):
+    for matching_taskgroup in assumed_task_selector.generate_task_groups(check.dag):
         assumed_tasks_and_ops = dict(matching_taskgroup)
         assumed_tasks_and_outs = {t: assumed_outcome for t in assumed_tasks_and_ops}
 
         for expected_matching_taskgroup in expected_task_selector.generate_task_groups(
-            dag
+            check.dag
         ):
             expected_tasks_and_ops = dict(expected_matching_taskgroup)
             expected_tasks_and_outs = {
@@ -264,7 +267,7 @@ def run_check(check: "FinalTaskTestCheck"):
             ) = _evaluate_assumption_and_expectation(
                 assumed_tasks_and_outs=assumed_tasks_and_outs,
                 expected_tasks_and_outs=expected_tasks_and_outs,
-                dag=dag,
+                dag=check.dag,
             )
             all_resulting_outcomes.append(actual_tasks_and_outs)
 

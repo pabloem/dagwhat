@@ -48,8 +48,8 @@ def given(dag: DAG) -> "DagTest":
 ##############################################################################
 #### TASK SELECTORS ########
 ##############################################################################
-def task(id):
-    return TaskGroupSelector(ids=[id], group_is=TaskGroupSelector.ALL)
+def task(task_id):
+    return TaskGroupSelector(ids=[task_id], group_is=TaskGroupSelector.ALL)
 
 
 def tasks(*ids):
@@ -70,7 +70,7 @@ def all_tasks(with_id=None, with_operator=None):
 
 def the_dag():
     """A selector representing the fact that the WHOLE dag execution will fail."""
-    return DagSelector()
+    return DagSelector
 
 
 ##############################################################################

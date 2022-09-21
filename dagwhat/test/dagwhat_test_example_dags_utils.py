@@ -19,7 +19,7 @@ def basic_dag() -> models.DAG:
         op2 = EmptyOperator(task_id="task_2")
         op3 = EmptyOperator(task_id="task_3")
 
-        (
+        _ = (
             op1
             >> op2
             >> op3
@@ -54,16 +54,16 @@ def dag_with_branching_operator() -> models.DAG:
         start_date=DEFAULT_DATE,
     )
     with the_dag:
-        op = EmptyOperator(task_id="task_1")
+        op1 = EmptyOperator(task_id="task_1")
         branch_op = BranchPythonOperator(
             task_id="branching_boi", python_callable=lambda: "run_task_B"
         )
 
-        task_A = EmptyOperator(task_id="task_A")
-        task_B = EmptyOperator(task_id="task_B")
-        op >> branch_op
-        branch_op >> task_A
-        branch_op >> task_B
+        task_a = EmptyOperator(task_id="task_A")
+        task_b = EmptyOperator(task_id="task_B")
+        op1 >> branch_op
+        branch_op >> task_a
+        branch_op >> task_b
     return the_dag
 
 
@@ -74,14 +74,14 @@ def dag_with_shorting_operator() -> models.DAG:
         start_date=DEFAULT_DATE,
     )
     with the_dag:
-        op = EmptyOperator(task_id="task_1")
+        op1 = EmptyOperator(task_id="task_1")
         branch_op = ShortCircuitOperator(
             task_id="shorting_boi", python_callable=lambda: True
         )
 
-        task_A = EmptyOperator(task_id="task_A")
-        op >> branch_op
-        branch_op >> task_A
+        task_a = EmptyOperator(task_id="task_A")
+        op1 >> branch_op
+        branch_op >> task_a
     return the_dag
 
 

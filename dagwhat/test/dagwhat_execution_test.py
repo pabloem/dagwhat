@@ -29,8 +29,8 @@ class ExecutionUtilsTest(unittest.TestCase):
                 [TaskOutcome.SUCCESS, TaskOutcome.SUCCESS],
             ),
             (
-                [TaskOutcome.SUCCESS, TaskOutcome.FAILURE, TaskOutcome.SUCCESS],  # 101
-                [TaskOutcome.SUCCESS, TaskOutcome.SUCCESS, TaskOutcome.FAILURE],  # 110
+                [TaskOutcome.SUCCESS, TaskOutcome.FAILURE, TaskOutcome.SUCCESS],
+                [TaskOutcome.SUCCESS, TaskOutcome.SUCCESS, TaskOutcome.FAILURE],
             ),
         ]
     )

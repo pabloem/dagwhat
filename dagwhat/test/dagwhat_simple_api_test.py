@@ -19,7 +19,6 @@ import unittest
 
 from parameterized import parameterized
 
-
 from dagwhat import *
 from dagwhat.test.dagwhat_test_example_dags_utils import (
     basic_dag,
@@ -150,7 +149,7 @@ class DagwhatSimpleApiTests(unittest.TestCase):
         thedag = basic_dag()
 
         # TODO(pabloem): Refine the expected exception
-        with self.assertRaises(AssertionError) as e:
+        with self.assertRaises(AssertionError):
             assert_that(
                 given(thedag).when(
                     task("task_1"), succeeds()
@@ -158,7 +157,6 @@ class DagwhatSimpleApiTests(unittest.TestCase):
                 # ensure that task_3 will run.
                 .then(task("task_3"), will_run())
             )
-        print(e.exception)
 
     def test_api_with_multiple_conditions(self):
         self.skipTest("This method / functionality is not yet implemented.")
@@ -192,7 +190,7 @@ class DagwhatEnsureCorrectUseTest(unittest.TestCase):
                 .then(task("task_2"), will_run()),
             ),
             (lambda thedag: given(thedag).when(task("task_1"), succeeds()),),
-            (lambda thedag: given(thedag),),
+            (given,),
         ]
     )
     def test_checks_must_run(self, test_instance):

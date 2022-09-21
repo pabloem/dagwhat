@@ -49,7 +49,7 @@ class DagwhatTaskSelectorTest(unittest.TestCase):
             (["task_1", "task_2", "task_3"], 3),
         ]
     )
-    def test_multiple_task_selector(self, task_ids, tasks_found):
+    def test_multiple_task_selector(self, task_ids, unused_tasks_found):
         thedag = basic_dag()
         cases = api.tasks(*task_ids)
 
