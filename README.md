@@ -84,6 +84,7 @@ assert_that(
 
 - Figure out the name of the library (dagwhat? dagtest? flowtest? ilikedags? flowcheck?, assertflow?)
 - Figure out whether this belongs to airflow or is an independent library
+- Implement DAG-failure and DAG-assumption checkers.
 
 ### Raw Development Notes
 

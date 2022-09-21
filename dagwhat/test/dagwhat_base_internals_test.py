@@ -24,13 +24,14 @@ from dagwhat.test.dagwhat_test_example_dags_utils import basic_dag
 
 
 class DagwhatTaskSelectorTest(unittest.TestCase):
-
-    @parameterized.expand([
-        ('task_1', 1),
-        ('task_2', 1),
-        ('task_3', 1),
-        ('task_4', 1),
-    ])
+    @parameterized.expand(
+        [
+            ("task_1", 1),
+            ("task_2", 1),
+            ("task_3", 1),
+            ("task_4", 1),
+        ]
+    )
     def test_single_task_selector(self, task_id, tasks_found):
         thedag = basic_dag()
         cases = api.task(task_id)
@@ -38,14 +39,16 @@ class DagwhatTaskSelectorTest(unittest.TestCase):
         task_groups = cases.generate_task_groups(thedag)
         self.assertListEqual(
             task_groups,
-            [[(task_id, thedag.task_dict[task_id])] for _ in range(tasks_found)]
+            [[(task_id, thedag.task_dict[task_id])] for _ in range(tasks_found)],
         )
 
-    @parameterized.expand([
-        (['task_1'], 1),
-        (['task_1', 'task_2'], 2),
-        (['task_1', 'task_2', 'task_3'], 3),
-    ])
+    @parameterized.expand(
+        [
+            (["task_1"], 1),
+            (["task_1", "task_2"], 2),
+            (["task_1", "task_2", "task_3"], 3),
+        ]
+    )
     def test_multiple_task_selector(self, task_ids, tasks_found):
         thedag = basic_dag()
         cases = api.tasks(*task_ids)
@@ -53,13 +56,15 @@ class DagwhatTaskSelectorTest(unittest.TestCase):
         task_groups = cases.generate_task_groups(thedag)
         self.assertListEqual(
             task_groups,
-            [[(task_id, thedag.task_dict[task_id]) for task_id in task_ids]]
+            [[(task_id, thedag.task_dict[task_id]) for task_id in task_ids]],
         )
 
-    @parameterized.expand([
-        (api.tasks('task_1', 'task_2', 'task_3', 'task_4', 'task_5'),),
-        (api.task('task_5'),),
-    ])
+    @parameterized.expand(
+        [
+            (api.tasks("task_1", "task_2", "task_3", "task_4", "task_5"),),
+            (api.task("task_5"),),
+        ]
+    )
     def test_task_must_exist_to_be_in_selector(self, selector):
         thedag = basic_dag()
 
@@ -67,6 +72,5 @@ class DagwhatTaskSelectorTest(unittest.TestCase):
             selector.generate_task_groups(thedag)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
-

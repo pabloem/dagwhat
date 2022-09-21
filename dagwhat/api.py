@@ -20,18 +20,18 @@ from dagwhat.base import *
 
 
 __all__ = [
-    'assert_that',
-    'given',
-    'task',
-    'tasks',
-    'any_task',
-    'succeeds',
-    'fails',
-    'runs',
-    'returns',
-    'does_not_run',
-    'may_run',
-    'will_run',
+    "assert_that",
+    "given",
+    "task",
+    "tasks",
+    "any_task",
+    "succeeds",
+    "fails",
+    "runs",
+    "returns",
+    "does_not_run",
+    "may_run",
+    "will_run",
 ]
 
 from dagwhat.dagwhat_execution import run_check
@@ -41,8 +41,9 @@ def assert_that(test_case: TaskTestCheckBuilder):
     run_check(test_case.build())
 
 
-def given(dag: DAG) -> 'DagTest':
+def given(dag: DAG) -> "DagTest":
     return DagTest(dag)
+
 
 ##############################################################################
 #### TASK SELECTORS ########
@@ -56,15 +57,21 @@ def tasks(*ids):
 
 
 def any_task(with_id=None, with_operator=None):
-    return TaskGroupSelector(ids=[with_id], operators=[with_operator], group_is=TaskGroupSelector.ANY)
+    return TaskGroupSelector(
+        ids=[with_id], operators=[with_operator], group_is=TaskGroupSelector.ANY
+    )
 
 
 def all_tasks(with_id=None, with_operator=None):
-    return TaskGroupSelector(ids=[with_id], operators=[with_operator], group_is=TaskGroupSelector.ALL)
+    return TaskGroupSelector(
+        ids=[with_id], operators=[with_operator], group_is=TaskGroupSelector.ALL
+    )
+
 
 def the_dag():
     """A selector representing the fact that the WHOLE dag execution will fail."""
     return DagSelector()
+
 
 ##############################################################################
 #### END TASK SELECTORS ########
@@ -74,34 +81,44 @@ def the_dag():
 #### OUTCOME CHECKERS ########
 ##############################################################################
 
+
 def succeeds() -> TaskOutcome:
     return TaskOutcome.SUCCESS
+
 
 def fails() -> TaskOutcome:
     return TaskOutcome.FAILURE
 
+
 def runs() -> TaskOutcome:
     return TaskOutcome.RUNS
+
 
 # TODO(pabloem): Write a test for this.
 def returns(value) -> TaskOutcome:
     return TaskOutcome(value)
 
+
 # TODO(pabloem): Open question: TaskOutcome is used to generate test conditions.
 #   It is ALSO used to generate CHECKS. We should have separate enums for this
 #   Perhaps: ExpectedOutcome and AssumedOutcome or something.
 
+
 def does_not_run() -> TaskOutcome:
     return TaskOutcome.WILL_NOT_RUN
+
 
 def may_run() -> TaskOutcome:
     return TaskOutcome.MAY_RUN
 
+
 def may_not_run() -> TaskOutcome:
     return TaskOutcome.MAY_NOT_RUN
 
+
 def will_run() -> TaskOutcome:
     return TaskOutcome.WILL_RUN
+
 
 ##############################################################################
 #### END OUTCOME CHECKERS ########
