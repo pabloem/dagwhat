@@ -23,9 +23,9 @@ from airflow.models.taskinstance import TaskInstance
 from airflow.utils.state import State
 from airflow.operators.python import PythonOperator
 
-import dagwhat.dagwhat
-from dagwhat.dagwhat import base
-from dagwhat.dagwhat.base import TaskOutcome, FinalTaskTestCheck
+import dagwhat
+from dagwhat import base
+from dagwhat.base import TaskOutcome, FinalTaskTestCheck
 
 
 class HypothesisExecutor(DebugExecutor):
@@ -121,7 +121,7 @@ def _evaluate_assumption_and_expectation(assumed_tasks_and_outs,
             if i == 0
             else _next_simulation(current_simulation))
 
-        hypothesis_executor = dagwhat.dagwhat.dagwhat_execution.HypothesisExecutor(
+        hypothesis_executor = dagwhat.dagwhat_execution.HypothesisExecutor(
             assumed_tasks_and_outs,
             expected_tasks_and_outs,
             dict(current_simulation)

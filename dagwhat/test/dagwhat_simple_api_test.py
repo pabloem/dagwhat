@@ -20,7 +20,7 @@ import unittest
 from parameterized import parameterized
 
 
-from dagwhat.dagwhat import *
+from dagwhat import *
 from dagwhat.test.dagwhat_test_example_dags_utils import basic_dag, branching_either_or_dag, \
     dag_with_branching_operator, dag_with_shorting_operator
 

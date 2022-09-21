@@ -16,7 +16,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-from dagwhat.dagwhat.base import *
+from dagwhat.base import *
 
 
 __all__ = [
@@ -34,7 +34,7 @@ __all__ = [
     'will_run',
 ]
 
-from dagwhat.dagwhat.dagwhat_execution import run_check
+from dagwhat.dagwhat_execution import run_check
 
 
 def assert_that(test_case: TaskTestCheckBuilder):

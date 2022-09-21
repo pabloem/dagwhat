@@ -1,8 +1,8 @@
 import unittest
 from parameterized import parameterized
 
-from dagwhat.dagwhat.dagwhat_execution import _next_simulation
-from dagwhat.dagwhat.base import TaskOutcome
+from dagwhat.dagwhat_execution import _next_simulation
+from dagwhat.base import TaskOutcome
 
 
 def _make_simulation_from_outcomes(outcomes):

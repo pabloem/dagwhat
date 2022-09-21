@@ -28,5 +28,5 @@
 #  3. TODO(pabloem)
 
 
-from dagwhat.dagwhat.api import *
+from dagwhat.api import *
 
