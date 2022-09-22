@@ -24,7 +24,9 @@ from dagwhat.base import DagSelector
 from dagwhat.base import DagTest
 from dagwhat.base import TaskTestCheckBuilder
 from dagwhat.base import TaskGroupSelector
+from dagwhat.base import TaskSelectorEnum
 from dagwhat.base import TaskOutcome
+from dagwhat.base import TaskOutcomes
 
 
 __all__ = [
@@ -65,12 +67,12 @@ def given(dag: DAG) -> "DagTest":
 
 def task(task_id: str):
     """Select an individual task via its ID."""
-    return TaskGroupSelector(ids=[task_id], group_is=TaskGroupSelector.ALL)
+    return TaskGroupSelector(ids=[task_id], group_is=TaskSelectorEnum.ALL)
 
 
 def tasks(*ids: str):
     """Select a group of tasks via their IDs."""
-    return TaskGroupSelector(ids=ids, group_is=TaskGroupSelector.ALL)
+    return TaskGroupSelector(ids=ids, group_is=TaskSelectorEnum.ALL)
 
 
 def any_task(with_id: str = None, with_operator=None):
@@ -80,7 +82,9 @@ def any_task(with_id: str = None, with_operator=None):
     the ID or the operator.
     """
     return TaskGroupSelector(
-        ids=[with_id], operators=[with_operator], group_is=TaskGroupSelector.ANY
+        ids=[with_id] if with_id else [],
+        operators=[with_operator] if with_operator else [],
+        group_is=TaskSelectorEnum.ANY,
     )
 
 
@@ -91,7 +95,7 @@ def all_tasks(with_id=None, with_operator=None):
     the ID or the operator.
     """
     return TaskGroupSelector(
-        ids=[with_id], operators=[with_operator], group_is=TaskGroupSelector.ALL
+        ids=[with_id], operators=[with_operator], group_is=TaskSelectorEnum.ALL
     )
 
 
@@ -111,42 +115,42 @@ def the_dag():
 
 def succeeds() -> TaskOutcome:
     """Assumption: The task(s) in question succeed upon execution."""
-    return TaskOutcome.SUCCESS
+    return TaskOutcomes.SUCCESS
 
 
 def fails() -> TaskOutcome:
     """Assumption: The task(s) in question fail upon execution."""
-    return TaskOutcome.FAILURE
+    return TaskOutcomes.FAILURE
 
 
 def runs() -> TaskOutcome:
     """Assumption: The task(s) in question will run. May fail or succeed."""
-    return TaskOutcome.RUNS
+    return TaskOutcomes.RUNS
 
 
 def returns(value) -> TaskOutcome:
     """Assumption: The task(s) have a function that returns `value`."""
-    return TaskOutcome(value)
+    return TaskOutcome("RETURNS", value)
 
 
 def does_not_run() -> TaskOutcome:
     """Expectation: The task(s) in question will not run given assumptions."""
-    return TaskOutcome.WILL_NOT_RUN
+    return TaskOutcomes.WILL_NOT_RUN
 
 
 def may_run() -> TaskOutcome:
     """Expectation: The task(s) may run despite the given assumptions."""
-    return TaskOutcome.MAY_RUN
+    return TaskOutcomes.MAY_RUN
 
 
 def may_not_run() -> TaskOutcome:
     """Expectation: The task(s) may not run despite the given assumptions."""
-    return TaskOutcome.MAY_NOT_RUN
+    return TaskOutcomes.MAY_NOT_RUN
 
 
 def will_run() -> TaskOutcome:
     """Expectation: The task(s) in question will run in assumed conditions."""
-    return TaskOutcome.WILL_RUN
+    return TaskOutcomes.WILL_RUN
 
 
 ##############################################################################

@@ -27,7 +27,7 @@ from airflow.utils.state import State
 from airflow.operators.python import PythonOperator
 
 from dagwhat import base
-from dagwhat.base import TaskOutcome, FinalTaskTestCheck
+from dagwhat.base import TaskOutcome, TaskOutcomes, FinalTaskTestCheck
 
 
 class HypothesisExecutor(DebugExecutor):
@@ -43,7 +43,7 @@ class HypothesisExecutor(DebugExecutor):
         self.assumed_tasks_and_outcomes = assumed_tasks_and_outcomes
         self.expected_tasks_and_outcomes = expected_tasks_and_outcomes
         self.actual_task_results: typing.MutableMapping = {
-            t: base.TaskOutcome.NOT_RUN for t in expected_tasks_and_outcomes
+            t: base.TaskOutcomes.NOT_RUN for t in expected_tasks_and_outcomes
         }
         self.simulated_tasks_and_outcomes = simulated_tasks_and_outcomes
 
@@ -79,7 +79,7 @@ class HypothesisExecutor(DebugExecutor):
             # outcomes, or is a returns('value') outcome.
             assert self.assumed_tasks_and_outcomes[
                 ti.task_id
-            ] in base.TaskOutcome.ASSUMABLE_OUTCOMES or isinstance(
+            ] in base.TaskOutcomes.ASSUMABLE_OUTCOMES or isinstance(
                 self.assumed_tasks_and_outcomes[ti.task_id], base.TaskOutcome
             )
             self.actual_task_results[
@@ -87,7 +87,7 @@ class HypothesisExecutor(DebugExecutor):
             ] = self.assumed_tasks_and_outcomes[ti.task_id]
             if self.assumed_tasks_and_outcomes[
                 ti.task_id
-            ] == base.TaskOutcome.SUCCESS or isinstance(
+            ] == base.TaskOutcomes.SUCCESS or isinstance(
                 self.assumed_tasks_and_outcomes[ti.task_id], base.TaskOutcome
             ):
                 # TODO(pabloem): Patch Python Operators to execute a lambda
@@ -98,7 +98,7 @@ class HypothesisExecutor(DebugExecutor):
                 ti.set_state(State.SUCCESS)
             elif (
                 self.assumed_tasks_and_outcomes[ti.task_id]
-                == base.TaskOutcome.FAILURE
+                == base.TaskOutcomes.FAILURE
             ):
                 self.change_state(ti.key, State.FAILED)
                 ti.set_state(State.FAILED)
@@ -111,26 +111,26 @@ class HypothesisExecutor(DebugExecutor):
         elif ti.task_id in self.expected_tasks_and_outcomes:
             assert (
                 self.expected_tasks_and_outcomes[ti.task_id]
-                in base.TaskOutcome.EXPECTABLE_OUTCOMES
+                in base.TaskOutcomes.EXPECTABLE_OUTCOMES
             )
             # We cannot know whether the task will fail or succeed. We can
             # only know that it has been reached, and under the current
             # conditions it will run.
             ti.set_state(State.SUCCESS)
-            self.actual_task_results[ti.task_id] = TaskOutcome.RUNS
+            self.actual_task_results[ti.task_id] = TaskOutcomes.RUNS
 
         if ti.task_id in self.simulated_tasks_and_outcomes:
             # If we don't have a pre-determined outcome for this task, we must
             # simulate a success and a failure to obtain the actual result.
             if (
                 self.simulated_tasks_and_outcomes[ti.task_id]
-                == base.TaskOutcome.SUCCESS
+                == base.TaskOutcomes.SUCCESS
             ):
                 self.change_state(ti.key, State.SUCCESS)
                 ti.set_state(State.SUCCESS)
             elif (
                 self.simulated_tasks_and_outcomes[ti.task_id]
-                == base.TaskOutcome.FAILURE
+                == base.TaskOutcomes.FAILURE
             ):
                 self.change_state(ti.key, State.FAILED)
                 ti.set_state(State.FAILED)
@@ -146,11 +146,11 @@ def _next_simulation(
     for i in reversed(range(len(previous_simulation))):
         if flips_done:
             result.append(previous_simulation[i])
-        elif previous_simulation[i][1] == TaskOutcome.FAILURE:
-            result.append((previous_simulation[i][0], TaskOutcome.SUCCESS))
+        elif previous_simulation[i][1] == TaskOutcomes.FAILURE:
+            result.append((previous_simulation[i][0], TaskOutcomes.SUCCESS))
             flips_done = True
         else:
-            result.append((previous_simulation[i][0], TaskOutcome.FAILURE))
+            result.append((previous_simulation[i][0], TaskOutcomes.FAILURE))
 
     return list(reversed(result))
 
@@ -163,12 +163,9 @@ def _evaluate_assumption_and_expectation(
     simulations_to_run = 2 ** len(tasks_to_simulate)
     print("Running a total of %r simulations." % simulations_to_run)
 
-    current_simulation: typing.Optional[
-        typing.List[typing.Tuple[str, TaskOutcome]]
-    ] = None
     for i in range(simulations_to_run):
-        current_simulation = (
-            [(task_id, TaskOutcome.FAILURE) for task_id in tasks_to_simulate]
+        current_simulation: typing.List[typing.Tuple[str, TaskOutcome]] = (
+            [(task_id, TaskOutcomes.FAILURE) for task_id in tasks_to_simulate]
             if i == 0
             else _next_simulation(current_simulation)
         )
@@ -215,28 +212,27 @@ def _evaluate_assumption_and_expectation(
 
         if any(
             (
-                result == TaskOutcome.NOT_RUN
-                and expected_tasks_and_outs[task_id] == TaskOutcome.WILL_RUN
+                result == TaskOutcomes.NOT_RUN
+                and expected_tasks_and_outs[task_id] == TaskOutcomes.WILL_RUN
             )
             or (
-                result == TaskOutcome.RUNS
-                and expected_tasks_and_outs[task_id] == TaskOutcome.WILL_NOT_RUN
+                result == TaskOutcomes.RUNS
+                and expected_tasks_and_outs[task_id]
+                == TaskOutcomes.WILL_NOT_RUN
             )
-            for task_id, result
-            in hypothesis_executor.actual_task_results.items()
+            for task_id, result in hypothesis_executor.actual_task_results.items()
         ):
             return True, False, simulation_results
         if any(
             (
-                result == TaskOutcome.RUNS
-                and expected_tasks_and_outs[task_id] == TaskOutcome.MAY_RUN
+                result == TaskOutcomes.RUNS
+                and expected_tasks_and_outs[task_id] == TaskOutcomes.MAY_RUN
             )
             or (
-                result == TaskOutcome.NOT_RUN
-                and expected_tasks_and_outs[task_id] == TaskOutcome.MAY_NOT_RUN
+                result == TaskOutcomes.NOT_RUN
+                and expected_tasks_and_outs[task_id] == TaskOutcomes.MAY_NOT_RUN
             )
-            for task_id, result
-            in hypothesis_executor.actual_task_results.items()
+            for task_id, result in hypothesis_executor.actual_task_results.items()
         ):
             return False, True, simulation_results
 
@@ -324,12 +320,12 @@ def run_check(check: "FinalTaskTestCheck"):
 def _task_expectation_matches_outcomes(task, expectation, outcomes):
     operator = (
         all
-        if expectation in (TaskOutcome.WILL_RUN, TaskOutcome.WILL_NOT_RUN)
+        if expectation in (TaskOutcomes.WILL_RUN, TaskOutcomes.WILL_NOT_RUN)
         else any
     )
     value = (
-        TaskOutcome.RUNS
-        if expectation in (TaskOutcome.WILL_RUN, TaskOutcome.MAY_RUN)
-        else TaskOutcome.NOT_RUN
+        TaskOutcomes.RUNS
+        if expectation in (TaskOutcomes.WILL_RUN, TaskOutcomes.MAY_RUN)
+        else TaskOutcomes.NOT_RUN
     )
     return operator(outcome[task] == value for outcome in outcomes)

@@ -25,6 +25,7 @@ blocks used to build an internal representation for a Dagwhat
 property-based test.
 """
 
+from enum import Enum
 import logging
 import typing
 
@@ -45,33 +46,20 @@ class TaskOutcome:
     may_run, will_not_run, may_not_run, etc.
     """
 
-    SUCCESS = "SUCCESS"
-    FAILURE = "FAILURE"
-    RUNS = "RUNS"
-    NOT_RUN = "NOT_RUN"  # TODO(pabloem): Document
-    MAY_RUN = "MAY_RUN"  # TODO(pabloem): Document
-    MAY_NOT_RUN = "MAY_NOT_RUN"  # TODO(pabloem): Document
-    WILL_RUN = "WILL_RUN"
-    WILL_NOT_RUN = "WILL_NOT_RUN"
-    # TODO(pabloem): Support tasks failing and being retried, etc.
-
-    ASSUMABLE_OUTCOMES = {SUCCESS, FAILURE, NOT_RUN, RUNS}
-
-    EXPECTABLE_OUTCOMES = {MAY_RUN, MAY_NOT_RUN, WILL_RUN, WILL_NOT_RUN}
-
-    def __init__(self, value):
-        self.return_value = value
+    def __init__(self, outcome, return_value=None):
+        self.outcome = outcome
+        self.return_value = return_value
 
     @classmethod
     def assert_expectable(cls, outcome: "TaskOutcome"):
         """Checks that an outcome value is a valid expectable outcome."""
         if (
             isinstance(outcome, str)
-            and outcome not in TaskOutcome.EXPECTABLE_OUTCOMES
+            and outcome not in TaskOutcomes.EXPECTABLE_OUTCOMES
         ):
             raise ValueError(
                 f"Task or dag outcome {outcome} cannot be asserted on."
-                f" Use one of {TaskOutcome.EXPECTABLE_OUTCOMES} instead."
+                f" Use one of {TaskOutcomes.EXPECTABLE_OUTCOMES} instead."
             )
 
     @classmethod
@@ -79,13 +67,37 @@ class TaskOutcome:
         """Checks that an outcome value is a valid assumable outcome."""
         if (
             isinstance(outcome, str)
-            and outcome not in TaskOutcome.ASSUMABLE_OUTCOMES
+            and outcome not in TaskOutcomes.ASSUMABLE_OUTCOMES
         ):
             raise ValueError(
                 f"Task or dag outcome {outcome} cannot be used as assumption."
-                f" Use one of {TaskOutcome.ASSUMABLE_OUTCOMES} instead."
+                f" Use one of {TaskOutcomes.ASSUMABLE_OUTCOMES} instead."
             )
 
+
+class TaskOutcomes:
+    # TODO(pabloem): Support tasks failing and being retried, etc.
+    SUCCESS = TaskOutcome("SUCCESS")
+    FAILURE = TaskOutcome("FAILURE")
+    RUNS = TaskOutcome("RUNS")
+    NOT_RUN = TaskOutcome("NOT_RUN")  # TODO(pabloem): Document
+    MAY_RUN = TaskOutcome("MAY_RUN")  # TODO(pabloem): Document
+    MAY_NOT_RUN = TaskOutcome("MAY_NOT_RUN")  # TODO(pabloem): Document
+    WILL_RUN = TaskOutcome("WILL_RUN")
+    WILL_NOT_RUN = TaskOutcome("WILL_NOT_RUN")
+
+    ASSUMABLE_OUTCOMES = {
+        SUCCESS,
+        FAILURE,
+        NOT_RUN,
+        RUNS,
+    }
+    EXPECTABLE_OUTCOMES = {MAY_RUN, MAY_NOT_RUN, WILL_RUN, WILL_NOT_RUN}
+
+
+class TaskSelectorEnum(Enum):
+    ANY = 1
+    ALL = 2
 
 class TaskGroupSelector:
     """An internal class used to build sets of tasks that meet a condition.
@@ -93,16 +105,13 @@ class TaskGroupSelector:
     This class has no backards-compatibility guarantees.
     """
 
-    ANY = object()
-    ALL = object()
-
     def __init__(
         self,
         ids: typing.Optional[typing.Collection[str]] = None,
-        operators: typing.Optional[typing.Set[typing.Type[Operator]]] = None,
-        group_is: typing.Union[
-            "TaskGroupSelector.ALL", "TaskGroupSelector.ANY"
+        operators: typing.Optional[
+            typing.Collection[typing.Type[Operator]]
         ] = None,
+        group_is: TaskSelectorEnum = None,
     ):
         self.ids = ids
         self.operators = operators
@@ -140,9 +149,9 @@ class TaskGroupSelector:
                 "Unmatched IDs: %r" % set(self.ids).difference(found_ids)
             )
 
-        if self.group_is == TaskGroupSelector.ANY:
+        if self.group_is == TaskSelectorEnum.ANY:
             return [[id_op] for id_op in matching_tasks]
-        assert self.group_is == TaskGroupSelector.ALL
+        assert self.group_is == TaskSelectorEnum.ALL
         return [matching_tasks]
 
 
@@ -303,7 +312,7 @@ class TaskTestBuilder:
     def then(
         self,
         task_or_dag_selector,
-        task_or_dag_outcome: typing.Union[TaskOutcome, str],
+        task_or_dag_outcome: TaskOutcome,
     ) -> TaskTestCheckBuilder:
         """Add the first expected outcome for this DAG check.
 

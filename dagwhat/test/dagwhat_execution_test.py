@@ -22,7 +22,7 @@ import unittest
 from parameterized import parameterized
 
 from dagwhat.dagwhat_execution import _next_simulation
-from dagwhat.base import TaskOutcome
+from dagwhat.base import TaskOutcome, TaskOutcomes
 
 
 def _make_simulation_from_outcomes(outcomes):
@@ -33,24 +33,32 @@ class ExecutionUtilsTest(unittest.TestCase):
     @parameterized.expand(
         [
             (
-                [TaskOutcome.SUCCESS, TaskOutcome.SUCCESS],
-                [TaskOutcome.FAILURE, TaskOutcome.FAILURE],
+                [TaskOutcomes.SUCCESS, TaskOutcomes.SUCCESS],
+                [TaskOutcomes.FAILURE, TaskOutcomes.FAILURE],
             ),
             (
-                [TaskOutcome.FAILURE, TaskOutcome.FAILURE],
-                [TaskOutcome.FAILURE, TaskOutcome.SUCCESS],
+                [TaskOutcomes.FAILURE, TaskOutcomes.FAILURE],
+                [TaskOutcomes.FAILURE, TaskOutcomes.SUCCESS],
             ),
             (
-                [TaskOutcome.FAILURE, TaskOutcome.SUCCESS],
-                [TaskOutcome.SUCCESS, TaskOutcome.FAILURE],
+                [TaskOutcomes.FAILURE, TaskOutcomes.SUCCESS],
+                [TaskOutcomes.SUCCESS, TaskOutcomes.FAILURE],
             ),
             (
-                [TaskOutcome.SUCCESS, TaskOutcome.FAILURE],
-                [TaskOutcome.SUCCESS, TaskOutcome.SUCCESS],
+                [TaskOutcomes.SUCCESS, TaskOutcomes.FAILURE],
+                [TaskOutcomes.SUCCESS, TaskOutcomes.SUCCESS],
             ),
             (
-                [TaskOutcome.SUCCESS, TaskOutcome.FAILURE, TaskOutcome.SUCCESS],
-                [TaskOutcome.SUCCESS, TaskOutcome.SUCCESS, TaskOutcome.FAILURE],
+                [
+                    TaskOutcomes.SUCCESS,
+                    TaskOutcomes.FAILURE,
+                    TaskOutcomes.SUCCESS,
+                ],
+                [
+                    TaskOutcomes.SUCCESS,
+                    TaskOutcomes.SUCCESS,
+                    TaskOutcomes.FAILURE,
+                ],
             ),
         ]
     )
@@ -61,5 +69,5 @@ class ExecutionUtilsTest(unittest.TestCase):
         )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

@@ -40,4 +40,4 @@ expected outcomes.
 
 """
 
-from dagwhat.api import * # noqa
+from dagwhat.api import *  # noqa
