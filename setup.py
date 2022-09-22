@@ -28,6 +28,6 @@ setup(
     name="dagwhat",
     version="0.1" + "." + BUILD_ID,
     packages=find_packages("dagwhat", exclude=['test']),
-    setup_requires=["apache-airflow"],
+    install_requires=["apache-airflow"],
     tests_require=["pytest", "pytest-nunit", "pytest-cov"],
 )
