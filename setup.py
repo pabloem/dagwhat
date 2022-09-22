@@ -29,5 +29,6 @@ setup(
     version="0.1" + "." + BUILD_ID,
     packages=find_packages("dagwhat", exclude=['test']),
     install_requires=["apache-airflow"],
-    tests_require=["pytest", "pytest-nunit", "pytest-cov"],
+    extras_require={
+        'test': ["pytest", "pytest-nunit", "pytest-cov", "parameterized"]},
 )

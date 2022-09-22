@@ -16,6 +16,8 @@
 # specific language governing permissions and limitations
 # under the License.
 
+# pylint: disable=R0903
+
 """The base classes for the implementation of the Dagwhat module.
 
 The classes, functions and constants in this file are the basic
