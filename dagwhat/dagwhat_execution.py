@@ -88,11 +88,10 @@ class HypothesisExecutor(DebugExecutor):
             self.actual_task_results[
                 ti.task_id
             ] = self.assumed_tasks_and_outcomes[ti.task_id]
-            if (
-                self.assumed_tasks_and_outcomes[ti.task_id]
-                == base.TaskOutcomes.SUCCESS
+            if self.assumed_tasks_and_outcomes[ti.task_id].outcome in (
+                base.TaskOutcomes.SUCCESS.outcome,
+                base.TaskOutcomes.RETURNS.outcome,
             ):
-                # TODO(pabloem): Patch Python Operators to execute a lambda
                 self._patch_and_execute_operator(
                     ti, self.assumed_tasks_and_outcomes[ti.task_id]
                 )

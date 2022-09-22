@@ -107,12 +107,14 @@ class TaskOutcomes:
     MAY_NOT_RUN = TaskOutcome("MAY_NOT_RUN")  # TODO(pabloem): Document
     WILL_RUN = TaskOutcome("WILL_RUN")
     WILL_NOT_RUN = TaskOutcome("WILL_NOT_RUN")
+    RETURNS = TaskOutcome("RETURNS", object())
 
     ASSUMABLE_OUTCOMES = {
         SUCCESS.outcome,
         FAILURE.outcome,
         NOT_RUN.outcome,
         RUNS.outcome,
+        RETURNS.outcome,
     }
     EXPECTABLE_OUTCOMES = {MAY_RUN, MAY_NOT_RUN, WILL_RUN, WILL_NOT_RUN}
 
