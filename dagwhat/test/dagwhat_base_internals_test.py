@@ -20,7 +20,7 @@
 
 import unittest
 
-from parameterized import parameterized
+from parameterized import parameterized  # type: ignore
 
 from dagwhat import api
 from dagwhat.test.dagwhat_test_example_dags_utils import basic_dag

@@ -24,6 +24,7 @@ from airflow import DAG, AirflowException
 from airflow.executors.debug_executor import DebugExecutor
 from airflow.models.taskinstance import TaskInstance
 from airflow.utils.state import State
+from airflow.utils.context import Context
 from airflow.operators.python import PythonOperator
 
 from dagwhat import base
@@ -61,13 +62,14 @@ class HypothesisExecutor(DebugExecutor):
                 return task_outcome.return_value
 
             setattr(task_instance.task.roots[0], "execute_callable", new_lambda)
+            # TODO(pabloem): Fix key population for Context (if necessary).
             task_instance.task.roots[0].execute(
-                {
+                Context({  # type: ignore
                     "dag": task_instance.task.dag,
                     "ti": task_instance,
                     "task": task_instance.task,
                     "dag_run": task_instance.dag_run,
-                }
+                })
             )
             setattr(
                 task_instance.task.roots[0], "execute_callable", original_lambda
@@ -220,7 +222,8 @@ def _evaluate_assumption_and_expectation(
                 and expected_tasks_and_outs[task_id]
                 == TaskOutcomes.WILL_NOT_RUN
             )
-            for task_id, result in hypothesis_executor.actual_task_results.items()
+            for task_id, result
+            in hypothesis_executor.actual_task_results.items()
         ):
             return True, False, simulation_results
         if any(
@@ -232,7 +235,8 @@ def _evaluate_assumption_and_expectation(
                 result == TaskOutcomes.NOT_RUN
                 and expected_tasks_and_outs[task_id] == TaskOutcomes.MAY_NOT_RUN
             )
-            for task_id, result in hypothesis_executor.actual_task_results.items()
+            for task_id, result
+            in hypothesis_executor.actual_task_results.items()
         ):
             return False, True, simulation_results
 

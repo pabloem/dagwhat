@@ -20,7 +20,7 @@
 
 import unittest
 
-from parameterized import parameterized
+from parameterized import parameterized  # type: ignore
 
 from dagwhat import assert_that, given, the_dag, task, succeeds, will_run
 from dagwhat import returns, does_not_run, fails, may_run

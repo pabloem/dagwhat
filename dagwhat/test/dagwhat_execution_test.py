@@ -19,10 +19,10 @@
 # pylint: disable=C
 
 import unittest
-from parameterized import parameterized
+from parameterized import parameterized  # type: ignore
 
 from dagwhat.dagwhat_execution import _next_simulation
-from dagwhat.base import TaskOutcome, TaskOutcomes
+from dagwhat.base import TaskOutcomes
 
 
 def _make_simulation_from_outcomes(outcomes):

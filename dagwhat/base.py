@@ -76,6 +76,7 @@ class TaskOutcome:
 
 
 class TaskOutcomes:
+    """Holder for all possible Task Outcomes."""
     # TODO(pabloem): Support tasks failing and being retried, etc.
     SUCCESS = TaskOutcome("SUCCESS")
     FAILURE = TaskOutcome("FAILURE")
@@ -96,8 +97,10 @@ class TaskOutcomes:
 
 
 class TaskSelectorEnum(Enum):
+    """Enumerator for ways in which to select tasks for validations."""
     ANY = 1
     ALL = 2
+
 
 class TaskGroupSelector:
     """An internal class used to build sets of tasks that meet a condition.

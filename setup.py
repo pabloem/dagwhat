@@ -20,7 +20,7 @@
 """Setup file for the Dagwhat library."""
 
 import os
-from setuptools import setup, find_packages
+from setuptools import setup, find_packages  # type: ignore
 
 BUILD_ID = os.environ.get("BUILD_BUILDID", "0")
 
