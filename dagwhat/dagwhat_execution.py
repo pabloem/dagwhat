@@ -22,6 +22,7 @@ import typing
 
 from airflow import DAG, AirflowException
 from airflow.executors.debug_executor import DebugExecutor
+from airflow.models import BaseOperator
 from airflow.models.taskinstance import TaskInstance
 from airflow.utils.state import State
 from airflow.utils.context import Context
@@ -63,6 +64,8 @@ class HypothesisExecutor(DebugExecutor):
 
             setattr(task_instance.task.roots[0], "execute_callable", new_lambda)
             # TODO(pabloem): Fix key population for Context (if necessary).
+            assert isinstance(task_instance.task.dag, DAG)
+            assert isinstance(task_instance.task, BaseOperator)
             task_instance.task.roots[0].execute(
                 Context(
                     {  # type: ignore
