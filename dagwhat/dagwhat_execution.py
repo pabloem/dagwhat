@@ -64,12 +64,14 @@ class HypothesisExecutor(DebugExecutor):
             setattr(task_instance.task.roots[0], "execute_callable", new_lambda)
             # TODO(pabloem): Fix key population for Context (if necessary).
             task_instance.task.roots[0].execute(
-                Context({  # type: ignore
-                    "dag": task_instance.task.dag,
-                    "ti": task_instance,
-                    "task": task_instance.task,
-                    "dag_run": task_instance.dag_run,
-                })
+                Context(
+                    {  # type: ignore
+                        "dag": task_instance.task.dag,
+                        "ti": task_instance,
+                        "task": task_instance.task,
+                        "dag_run": task_instance.dag_run,
+                    }
+                )
             )
             setattr(
                 task_instance.task.roots[0], "execute_callable", original_lambda
@@ -79,18 +81,16 @@ class HypothesisExecutor(DebugExecutor):
         if ti.task_id in self.assumed_tasks_and_outcomes:
             # Assert that this assumed outcome is among correct assumable
             # outcomes, or is a returns('value') outcome.
-            assert self.assumed_tasks_and_outcomes[
-                ti.task_id
-            ] in base.TaskOutcomes.ASSUMABLE_OUTCOMES or isinstance(
-                self.assumed_tasks_and_outcomes[ti.task_id], base.TaskOutcome
+            assert (
+                self.assumed_tasks_and_outcomes[ti.task_id].outcome
+                in base.TaskOutcomes.ASSUMABLE_OUTCOMES
             )
             self.actual_task_results[
                 ti.task_id
             ] = self.assumed_tasks_and_outcomes[ti.task_id]
-            if self.assumed_tasks_and_outcomes[
-                ti.task_id
-            ] == base.TaskOutcomes.SUCCESS or isinstance(
-                self.assumed_tasks_and_outcomes[ti.task_id], base.TaskOutcome
+            if (
+                self.assumed_tasks_and_outcomes[ti.task_id]
+                == base.TaskOutcomes.SUCCESS
             ):
                 # TODO(pabloem): Patch Python Operators to execute a lambda
                 self._patch_and_execute_operator(

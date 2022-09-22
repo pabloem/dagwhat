@@ -50,6 +50,26 @@ class TaskOutcome:
         self.outcome = outcome
         self.return_value = return_value
 
+    def __eq__(self, other):
+        return isinstance(other, TaskOutcome) and (
+            self.outcome,
+            self.return_value,
+        ) == (
+            other.outcome,
+            other.return_value,
+        )
+
+    def __hash__(self):
+        return hash((self.outcome, self.return_value))
+
+    def __str__(self):
+        return self.__repr__()
+
+    def __repr__(self):
+        if self.return_value:
+            return f"TaskOutcome({self.outcome}->{self.return_value})"
+        return f"TaskOutcome({self.outcome})"
+
     @classmethod
     def assert_expectable(cls, outcome: "TaskOutcome"):
         """Checks that an outcome value is a valid expectable outcome."""
@@ -77,6 +97,7 @@ class TaskOutcome:
 
 class TaskOutcomes:
     """Holder for all possible Task Outcomes."""
+
     # TODO(pabloem): Support tasks failing and being retried, etc.
     SUCCESS = TaskOutcome("SUCCESS")
     FAILURE = TaskOutcome("FAILURE")
@@ -88,16 +109,17 @@ class TaskOutcomes:
     WILL_NOT_RUN = TaskOutcome("WILL_NOT_RUN")
 
     ASSUMABLE_OUTCOMES = {
-        SUCCESS,
-        FAILURE,
-        NOT_RUN,
-        RUNS,
+        SUCCESS.outcome,
+        FAILURE.outcome,
+        NOT_RUN.outcome,
+        RUNS.outcome,
     }
     EXPECTABLE_OUTCOMES = {MAY_RUN, MAY_NOT_RUN, WILL_RUN, WILL_NOT_RUN}
 
 
 class TaskSelectorEnum(Enum):
     """Enumerator for ways in which to select tasks for validations."""
+
     ANY = 1
     ALL = 2
 
