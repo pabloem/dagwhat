@@ -37,6 +37,7 @@ __all__ = [
     "fails",
     "runs",
     "returns",
+    "the_dag",
     "does_not_run",
     "may_run",
     "will_run",

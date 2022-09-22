@@ -59,3 +59,7 @@ class ExecutionUtilsTest(unittest.TestCase):
             _next_simulation(_make_simulation_from_outcomes(in_ex)),
             _make_simulation_from_outcomes(out_ex),
         )
+
+
+if __name__ == '__main__':
+    unittest.main()

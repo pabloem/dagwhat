@@ -146,11 +146,11 @@ def _next_simulation(
     for i in reversed(range(len(previous_simulation))):
         if flips_done:
             result.append(previous_simulation[i])
-        elif previous_simulation[i][1] == TaskOutcome.SUCCESS:
-            result.append((previous_simulation[i][0], TaskOutcome.FAILURE))
+        elif previous_simulation[i][1] == TaskOutcome.FAILURE:
+            result.append((previous_simulation[i][0], TaskOutcome.SUCCESS))
             flips_done = True
         else:
-            result.append((previous_simulation[i][0], TaskOutcome.SUCCESS))
+            result.append((previous_simulation[i][0], TaskOutcome.FAILURE))
 
     return list(reversed(result))
 
