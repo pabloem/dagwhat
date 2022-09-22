@@ -16,16 +16,28 @@
 # specific language governing permissions and limitations
 # under the License.
 
-# This module defines an experimental API to define property tests for Airflow
-# DAGs.
-# A property test works by defining a series of invariants and verifying
-# program behavior against them.
-#
-# Principles of the `dagwhat`
-#  1. Dagwhat is *not* concerned with specific operator functionality
-#  2. Dagwhat is concerned with DAG architecture, and expected DAG execution
-#     behavior.
-#  3. TODO(pabloem)
+"""
+This package contains a framework to define property tests for Apache Airflow
+DAGs.
 
+A property test works by defining a series of invariants and verifying
+program behavior against them.
 
-from dagwhat.api import *
+The library contains several building blocks that can be used to define these
+invariants. An invariant consists of:
+
+    - A series of assumptions about DAG execution. These assumptions represent
+        possible outcomes during the execution of a DAG.
+    - A series of expectations about DAG execution. These expectations are
+        outcomes that we want to *guarantee* given (and despite) the assumed
+        conditions.
+
+## Task selectors
+
+Task selectors are logical statements that allow DAG checks to define families
+of task sets or DAGs that will be used to assume outcomes, or to assert
+expected outcomes.
+
+"""
+
+from dagwhat.api import * # noqa

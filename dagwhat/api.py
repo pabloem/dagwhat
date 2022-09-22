@@ -16,6 +16,9 @@
 # specific language governing permissions and limitations
 # under the License.
 
+
+"""The public API definition for Dagwhat."""
+
 from airflow.models import DAG
 from dagwhat.base import DagSelector
 from dagwhat.base import DagTest
@@ -43,31 +46,49 @@ from dagwhat.dagwhat_execution import run_check
 
 
 def assert_that(test_case: TaskTestCheckBuilder):
+    """Execution call for DAG checks. All checks must finish with assert_that.
+
+    A DAG check contains the following four things:
+    - A DAG
+    - A series of assumptions
+    - A series of expectations.
+    - An `assert_that` function call that executes the check.
+    """
     run_check(test_case.build())
 
 
 def given(dag: DAG) -> "DagTest":
+    """Entry point for DAG checks. All DAG checks initialize with their DAG."""
     return DagTest(dag)
 
 
-##############################################################################
-# TASK SELECTORS
-##############################################################################
-def task(task_id):
+def task(task_id: str):
+    """Select an individual task via its ID."""
     return TaskGroupSelector(ids=[task_id], group_is=TaskGroupSelector.ALL)
 
 
-def tasks(*ids):
+def tasks(*ids: str):
+    """Select a group of tasks via their IDs."""
     return TaskGroupSelector(ids=ids, group_is=TaskGroupSelector.ALL)
 
 
-def any_task(with_id=None, with_operator=None):
+def any_task(with_id: str = None, with_operator=None):
+    """Select any task matching the input ID or input operator.
+
+    This selector defines the family of task groups with a single task matching
+    the ID or the operator.
+    """
     return TaskGroupSelector(
         ids=[with_id], operators=[with_operator], group_is=TaskGroupSelector.ANY
     )
 
 
 def all_tasks(with_id=None, with_operator=None):
+    """Select all tasks matching the input ID or input operator.
+
+    This selector defines the family of task groups with every task matching
+    the ID or the operator.
+    """
     return TaskGroupSelector(
         ids=[with_id], operators=[with_operator], group_is=TaskGroupSelector.ALL
     )
@@ -88,40 +109,42 @@ def the_dag():
 
 
 def succeeds() -> TaskOutcome:
+    """Assumption: The task(s) in question succeed upon execution."""
     return TaskOutcome.SUCCESS
 
 
 def fails() -> TaskOutcome:
+    """Assumption: The task(s) in question fail upon execution."""
     return TaskOutcome.FAILURE
 
 
 def runs() -> TaskOutcome:
+    """Assumption: The task(s) in question will run. May fail or succeed."""
     return TaskOutcome.RUNS
 
 
-# TODO(pabloem): Write a test for this.
 def returns(value) -> TaskOutcome:
+    """Assumption: The task(s) have a function that returns `value`."""
     return TaskOutcome(value)
 
 
-# TODO(pabloem): Open question: TaskOutcome is used to generate test conditions.
-#   It is ALSO used to generate CHECKS. We should have separate enums for this
-#   Perhaps: ExpectedOutcome and AssumedOutcome or something.
-
-
 def does_not_run() -> TaskOutcome:
+    """Expectation: The task(s) in question will not run given assumptions."""
     return TaskOutcome.WILL_NOT_RUN
 
 
 def may_run() -> TaskOutcome:
+    """Expectation: The task(s) may run despite the given assumptions."""
     return TaskOutcome.MAY_RUN
 
 
 def may_not_run() -> TaskOutcome:
+    """Expectation: The task(s) may not run despite the given assumptions."""
     return TaskOutcome.MAY_NOT_RUN
 
 
 def will_run() -> TaskOutcome:
+    """Expectation: The task(s) in question will run in assumed conditions."""
     return TaskOutcome.WILL_RUN
 
 

@@ -15,6 +15,14 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
+
+"""The base classes for the implementation of the Dagwhat module.
+
+The classes, functions and constants in this file are the basic
+blocks used to build an internal representation for a Dagwhat
+property-based test.
+"""
+
 import logging
 import typing
 
@@ -27,6 +35,14 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class TaskOutcome:
+    """A class and enumeration of task outcomes.
+
+    A task outcome can be: Success, failure, run, not run.
+
+    This enumeration defines also 'checked outcomes', which are will_run,
+    may_run, will_not_run, may_not_run, etc.
+    """
+
     SUCCESS = "SUCCESS"
     FAILURE = "FAILURE"
     RUNS = "RUNS"
@@ -46,6 +62,7 @@ class TaskOutcome:
 
     @classmethod
     def assert_expectable(cls, outcome: "TaskOutcome"):
+        """Checks that an outcome value is a valid expectable outcome."""
         if (
             isinstance(outcome, str)
             and outcome not in TaskOutcome.EXPECTABLE_OUTCOMES
@@ -57,6 +74,7 @@ class TaskOutcome:
 
     @classmethod
     def assert_assumable(cls, outcome: "TaskOutcome"):
+        """Checks that an outcome value is a valid assumable outcome."""
         if (
             isinstance(outcome, str)
             and outcome not in TaskOutcome.ASSUMABLE_OUTCOMES
@@ -68,6 +86,11 @@ class TaskOutcome:
 
 
 class TaskGroupSelector:
+    """An internal class used to build sets of tasks that meet a condition.
+
+    This class has no backards-compatibility guarantees.
+    """
+
     ANY = object()
     ALL = object()
 
@@ -86,6 +109,8 @@ class TaskGroupSelector:
     def generate_task_groups(
         self, dag: DAG
     ) -> typing.Iterable[typing.List[typing.Tuple[TaskIdType, Operator]]]:
+        """A generator of groups of tasks matching input selection criteria."""
+
         def id_matches(real_id, matching_id):
             # TODO(pabloem): support wildcard matching
             return real_id == matching_id
@@ -120,10 +145,21 @@ class TaskGroupSelector:
 
 
 class DagSelector:
-    pass
+    """An internal class used to represent the selection of the whole dag run.
+
+    This class has no backards-compatibility guarantees.
+    """
 
 
 class FinalTaskTestCheck:
+    """An internal class that represents a fully constructed dagwhat check.
+
+    It contains a DAG, a validation chain, and a series of assumptions in the
+    TaskTestBuilder.
+
+    This class has no backards-compatibility guarantees.
+    """
+
     def __init__(
         self,
         dag: DAG,
@@ -138,7 +174,13 @@ class FinalTaskTestCheck:
 
 
 class TaskTestCheckBuilder:
-    """TODO(pabloem): Must document"""
+    """An internal class that represents a dagwhat check that can be extended.
+
+    It contains a validation chain that can be used to check against a DAG or
+    series of tasks.
+
+    This class has no backards-compatibility guarantees.
+    """
 
     def __init__(self, task_test_condition: "TaskTestBuilder"):
         self.task_test_condition = task_test_condition
@@ -149,11 +191,18 @@ class TaskTestCheckBuilder:
         self.checked = False
 
     def and_(self, task_selector, task_outcome):
-        raise NotImplementedError('Not yet implemented sorry')
+        """Add the next assumed condition for this DAG-based test.
+
+        This method receives a task selector, and an assumed outcome.
+        """
+        # TODO(pabloem): Flesh out / improve this method. It's one of the most
+        #  important methods of the library.
+        raise NotImplementedError("Not yet implemented sorry")
 
     def add_check(
         self, task_or_dag_selector, task_or_dag_outcome
     ) -> "TaskTestCheckBuilder":
+        """Add a new check to the existing chain of checks."""
         self.validation_chain.append(
             (task_or_dag_selector, task_or_dag_outcome)
         )
@@ -171,10 +220,15 @@ class TaskTestCheckBuilder:
             )
 
     def mark_checked(self):
+        """Mark this check as visited.
+
+        If a check is created but never visited, then the test case has not
+        been validated."""
         self.checked = True
         self.task_test_condition.mark_checked()
 
     def build(self):
+        """Take validation chain and task selectors, and build final check."""
         self.mark_checked()
         return FinalTaskTestCheck(
             self.task_test_condition.dag_test.dag,
@@ -184,7 +238,13 @@ class TaskTestCheckBuilder:
 
 
 class TaskTestBuilder:
-    """TODO(pabloem): Must document"""
+    """An internal class that represents a dagwhat check that can be extended.
+
+    It contains a DAG, a validation chain, and a series of assumptions in the
+    TaskTestBuilder.
+
+    This class has no backards-compatibility guarantees.
+    """
 
     def __init__(
         self,
@@ -195,7 +255,7 @@ class TaskTestBuilder:
         self.dag_test = dag_test
         self.condition_chain = [(task_selector, outcome)]
 
-        # Dagwhat supports multi-and conditions or multi-or conditions.
+        # Dagwhat should support multi-and conditions or multi-or conditions.
         # Because mixed AND / OR evaluations are not associative, supporting
         # a mix of these conditions would create ambiguity in the API.
         # TODO(pabloem): Add support to multi-OR conditions, not just multi-AND
@@ -209,6 +269,10 @@ class TaskTestBuilder:
         self.checked = False
 
     def mark_checked(self):
+        """Mark this check as visited.
+
+        If a check is created but never visited, then the test case has not
+        been validated."""
         self.checked = True
         self.dag_test.mark_checked()
 
@@ -224,8 +288,12 @@ class TaskTestBuilder:
             )
 
     def and_(self, task_selector, outcome) -> "TaskTestBuilder":
-        # self.condition_chain.append((task_selector, outcome))
-        # return self
+        """Add the next expected outcome for this DAG check.
+
+        This method takes a task selector, and an expected outcome.
+        """
+        # TODO(pabloem): Flesh out / improve this method. It's one of the most
+        #  important methods of the library.
         raise NotImplementedError(
             "Additive test conditions are not yet supported."
         )
@@ -235,6 +303,12 @@ class TaskTestBuilder:
         task_or_dag_selector,
         task_or_dag_outcome: typing.Union[TaskOutcome, str],
     ) -> TaskTestCheckBuilder:
+        """Add the first expected outcome for this DAG check.
+
+        This method takes a task selector, and an expected outcome.
+        """
+        # TODO(pabloem): Flesh out / improve this method. It's one of the most
+        #  important methods of the library.
         TaskOutcome.assert_expectable(task_or_dag_outcome)
         check_builder = TaskTestCheckBuilder(self)
         check_builder.add_check(task_or_dag_selector, task_or_dag_outcome)
@@ -242,13 +316,23 @@ class TaskTestBuilder:
 
 
 class DagTest:
-    """TODO(pabloem): Must document"""
+    """The first class used to build a dagwhat check.
+
+    This class contains a reference to the Airflow DAG that we're testing,
+    and can received assumptions via the `when` method.
+
+    This class has no backwards compatibility guarantees.
+    """
 
     def __init__(self, dag: DAG):
         self.dag = dag
         self.checked = False
 
     def mark_checked(self):
+        """Mark this check as visited.
+
+        If a check is created but never visited, then the test case has not
+        been validated."""
         self.checked = True
 
     def __del__(self):
@@ -262,5 +346,11 @@ class DagTest:
             )
 
     def when(self, task_selector, outcome) -> TaskTestBuilder:
+        """Add the first assumed condition for this DAG-based test.
+
+        This method receives a task selector, and an assumed outcome.
+        """
+        # TODO(pabloem): Flesh out / improve this method. It's one of the most
+        #  important methods of the library.
         TaskOutcome.assert_assumable(outcome)
         return TaskTestBuilder(self, task_selector, outcome)

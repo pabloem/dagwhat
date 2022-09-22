@@ -15,6 +15,9 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
+
+"""Execution classes and methods for DAG checks in dagwhat."""
+
 import typing
 
 from airflow import DAG, AirflowException
@@ -23,12 +26,13 @@ from airflow.models.taskinstance import TaskInstance
 from airflow.utils.state import State
 from airflow.operators.python import PythonOperator
 
-import dagwhat
 from dagwhat import base
 from dagwhat.base import TaskOutcome, FinalTaskTestCheck
 
 
 class HypothesisExecutor(DebugExecutor):
+    """An executor that can execute assumptions and verify expectations."""
+
     def __init__(
         self,
         assumed_tasks_and_outcomes: typing.Mapping[str, "base.TaskOutcome"],
@@ -169,7 +173,7 @@ def _evaluate_assumption_and_expectation(
             else _next_simulation(current_simulation)
         )
 
-        hypothesis_executor = dagwhat.dagwhat_execution.HypothesisExecutor(
+        hypothesis_executor = HypothesisExecutor(
             assumed_tasks_and_outs,
             expected_tasks_and_outs,
             dict(current_simulation),
@@ -240,6 +244,10 @@ def _evaluate_assumption_and_expectation(
 
 
 def run_check(check: "FinalTaskTestCheck"):
+    """Entry point for execution of a DAG check.
+
+    This method is called by the assert_what function that wraps a fully
+    defined DAG check."""
     all_resulting_outcomes = []
 
     # TODO(pabloem): Support multiple test conditions.
