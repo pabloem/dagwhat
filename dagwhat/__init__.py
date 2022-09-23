@@ -39,5 +39,7 @@ of task sets or DAGs that will be used to assume outcomes, or to assert
 expected outcomes.
 
 """
+import airflow
 
 from dagwhat.api import *  # noqa
+airflow.configuration.load_test_config()

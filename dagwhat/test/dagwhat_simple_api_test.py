@@ -18,6 +18,7 @@
 
 # pylint: disable=C
 
+import cProfile
 import unittest
 
 from parameterized import parameterized  # type: ignore
@@ -124,6 +125,11 @@ class DagwhatSimpleApiTests(unittest.TestCase):
                 .when(task("task_1"), fails())
                 .then(task("task_2"), will_run())
             )
+
+    @unittest.skip("Only use this test for profiling")
+    def test_branching_with_profilint(self):
+        cProfile.runctx("self.test_branching_dag_with_trigger_conditions()",
+                        globals(), locals(), filename="someout1")
 
     def test_branching_dag_with_trigger_conditions(self):
         thedag = branching_either_or_dag()
