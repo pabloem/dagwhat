@@ -47,6 +47,9 @@ __all__ = [
 
 from dagwhat.dagwhat_execution import run_check
 
+# TODO(pabloem): Document or improve how special configurations are passed.
+OPTIONS = {"max_simulation_time": 40}
+
 
 def assert_that(test_case: TaskTestCheckBuilder):
     """Execution call for DAG checks. All checks must finish with assert_that.

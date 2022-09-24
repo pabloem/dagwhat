@@ -31,7 +31,6 @@ from dagwhat import will_run
 
 
 class TestLargerDagSamples(unittest.TestCase):
-    @unittest.skip("Test is too long. Only experimentation / demonstration.")
     def test_airflow_examples_example_complex_dag(self):
 
         # This DAG is visualized here:

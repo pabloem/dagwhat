@@ -17,7 +17,8 @@
 # under the License.
 
 """Execution classes and methods for DAG checks in dagwhat."""
-
+import random
+import time
 import typing
 
 from airflow import DAG, AirflowException
@@ -163,6 +164,27 @@ class HypothesisExecutor(DebugExecutor):
                 self.end()
 
 
+def _generate_simulations(task_ids: typing.Sequence[str]):
+    """Generate an exhaustive, randomly-sorted list of simulations.
+
+    Given a list of N tasks to simulate, this method returns a generator"""
+
+    def _int_to_simulation(tasks, bit_representation):
+        for task in tasks:
+            yield (
+                task,
+                TaskOutcomes.SUCCESS
+                if 1 & bit_representation == 1
+                else TaskOutcomes.FAILURE,
+            )
+            bit_representation = bit_representation >> 1
+
+    simulation_ints = list(range(2 ** len(task_ids)))
+    random.shuffle(simulation_ints)
+    for int_simulation in simulation_ints:
+        yield list(_int_to_simulation(task_ids, int_simulation))
+
+
 def _next_simulation(
     previous_simulation: typing.List[typing.Tuple[str, TaskOutcome]]
 ):
@@ -199,23 +221,28 @@ def _get_tasks_to_simulate(
 
 
 def _evaluate_assumption_and_expectation(
-    assumed_tasks_and_outs, expected_tasks_and_outs, dag: DAG
+    assumed_tasks_and_outs,
+    expected_tasks_and_outs,
+    dag: DAG,
+    test_start_time: float,
 ):
     tasks_to_simulate = _get_tasks_to_simulate(
         dag, assumed_tasks_and_outs, expected_tasks_and_outs
     )
-    simulation_results = []
-    simulations_to_run = 2 ** len(tasks_to_simulate)
-    print("Running a total of %r simulations." % simulations_to_run)
+    simulation_results: typing.List[typing.Mapping[str, TaskOutcome]] = []
+    print("Running a total of %r simulations." % 2 ** len(tasks_to_simulate))
 
-    for i in range(simulations_to_run):
-        if (i + 1) % 1000 == 0:
-            print(f"Simulation {i+1}")
-        current_simulation: typing.List[typing.Tuple[str, TaskOutcome]] = (
-            [(task_id, TaskOutcomes.FAILURE) for task_id in tasks_to_simulate]
-            if i == 0
-            else _next_simulation(current_simulation)
-        )
+    for i, current_simulation in enumerate(
+        _generate_simulations(tasks_to_simulate)
+    ):
+        if i % 2000 == 0:
+            elapsed = time.time() - test_start_time
+            # pylint: disable=import-outside-toplevel,cyclic-import
+            from dagwhat.api import OPTIONS
+
+            if elapsed > OPTIONS["max_simulation_time"]:
+                print(f"Stopping at a total of {i} random simulations.")
+                return False, False, simulation_results
         current_simulation_dict = dict(current_simulation)
 
         hypothesis_executor = HypothesisExecutor(
@@ -258,29 +285,27 @@ def _evaluate_assumption_and_expectation(
 
         if any(
             (
-                result == TaskOutcomes.NOT_RUN
+                res == TaskOutcomes.NOT_RUN
                 and expected_tasks_and_outs[task_id] == TaskOutcomes.WILL_RUN
             )
             or (
-                result == TaskOutcomes.RUNS
+                res == TaskOutcomes.RUNS
                 and expected_tasks_and_outs[task_id]
                 == TaskOutcomes.WILL_NOT_RUN
             )
-            for task_id, result
-            in hypothesis_executor.actual_task_results.items()
+            for task_id, res in hypothesis_executor.actual_task_results.items()
         ):
             return True, False, simulation_results
         if any(
             (
-                result == TaskOutcomes.RUNS
+                res == TaskOutcomes.RUNS
                 and expected_tasks_and_outs[task_id] == TaskOutcomes.MAY_RUN
             )
             or (
-                result == TaskOutcomes.NOT_RUN
+                res == TaskOutcomes.NOT_RUN
                 and expected_tasks_and_outs[task_id] == TaskOutcomes.MAY_NOT_RUN
             )
-            for task_id, result
-            in hypothesis_executor.actual_task_results.items()
+            for task_id, res in hypothesis_executor.actual_task_results.items()
         ):
             return False, True, simulation_results
 
@@ -308,17 +333,16 @@ def run_check(check: "FinalTaskTestCheck"):
     for matching_taskgroup in assumed_task_selector.generate_task_groups(
         check.dag
     ):
-        assumed_tasks_and_ops = dict(matching_taskgroup)
         assumed_tasks_and_outs = {
-            t: assumed_outcome for t in assumed_tasks_and_ops
+            t: assumed_outcome for t, _ in matching_taskgroup
         }
 
+        start_time = time.time()
         for (
             expected_matching_taskgroup
         ) in expected_task_selector.generate_task_groups(check.dag):
-            expected_tasks_and_ops = dict(expected_matching_taskgroup)
             expected_tasks_and_outs = {
-                t: expected_outcome for t in expected_tasks_and_ops
+                t: expected_outcome for t, _ in expected_matching_taskgroup
             }
 
             # The instant_failure variable becomes true if we find a simulation
@@ -340,6 +364,7 @@ def run_check(check: "FinalTaskTestCheck"):
                 assumed_tasks_and_outs=assumed_tasks_and_outs,
                 expected_tasks_and_outs=expected_tasks_and_outs,
                 dag=check.dag,
+                test_start_time=start_time,
             )
             all_resulting_outcomes.append(actual_tasks_and_outs)
 
@@ -354,7 +379,11 @@ def run_check(check: "FinalTaskTestCheck"):
                 print("RAN %s iterations" % len(all_resulting_outcomes))
                 return
 
-        # If we are not successful, then we return an assertion error
+        # If we are not successful, then we return an assertion error.
+        # This check runs at the top of the for look because we know only
+        # one batch of tasks will be assummed and one batch will be selected
+        # so expected_tasks_and_outs is always non-null and
+        # all_resulting_outcomes contains only one element.
         if not all(
             _task_expectation_matches_outcomes(t, e, all_resulting_outcomes[0])
             for t, e in expected_tasks_and_outs.items()
@@ -363,6 +392,11 @@ def run_check(check: "FinalTaskTestCheck"):
                 "Failures - \n\tExpected: %r \n\tActuals: %r"
                 % (expected_tasks_and_outs, all_resulting_outcomes)
             )
+
+        # pylint: disable=import-outside-toplevel,cyclic-import
+        from dagwhat.api import OPTIONS
+        if time.time() - start_time > OPTIONS["max_simulation_time"]:
+            break
 
 
 def _task_expectation_matches_outcomes(task, expectation, outcomes):
