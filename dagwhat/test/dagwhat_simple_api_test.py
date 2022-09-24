@@ -128,8 +128,12 @@ class DagwhatSimpleApiTests(unittest.TestCase):
 
     @unittest.skip("Only use this test for profiling")
     def test_branching_with_profilint(self):
-        cProfile.runctx("self.test_branching_dag_with_trigger_conditions()",
-                        globals(), locals(), filename="someout1")
+        cProfile.runctx(
+            "self.test_branching_dag_with_trigger_conditions()",
+            globals(),
+            locals(),
+            filename="someout1",
+        )
 
     def test_branching_dag_with_trigger_conditions(self):
         thedag = branching_either_or_dag()

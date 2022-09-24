@@ -44,10 +44,14 @@ class HypothesisExecutor(DebugExecutor):
         super().__init__()
         self.assumed_tasks_and_outcomes = assumed_tasks_and_outcomes
         self.expected_tasks_and_outcomes = expected_tasks_and_outcomes
+        self.matching_expectations = set(
+            self.expected_tasks_and_outcomes.keys()
+        )
         self.actual_task_results: typing.MutableMapping = {
             t: base.TaskOutcomes.NOT_RUN for t in expected_tasks_and_outcomes
         }
         self.simulated_tasks_and_outcomes = simulated_tasks_and_outcomes
+        self.done = False
 
     def _patch_and_execute_operator(
         self, task_instance: TaskInstance, task_outcome: base.TaskOutcome
@@ -112,18 +116,7 @@ class HypothesisExecutor(DebugExecutor):
                     "for task %r"
                     % (self.assumed_tasks_and_outcomes[ti.task_id], ti.task_id)
                 )
-        elif ti.task_id in self.expected_tasks_and_outcomes:
-            assert (
-                self.expected_tasks_and_outcomes[ti.task_id]
-                in base.TaskOutcomes.EXPECTABLE_OUTCOMES
-            )
-            # We cannot know whether the task will fail or succeed. We can
-            # only know that it has been reached, and under the current
-            # conditions it will run.
-            ti.set_state(State.SUCCESS)
-            self.actual_task_results[ti.task_id] = TaskOutcomes.RUNS
-
-        if ti.task_id in self.simulated_tasks_and_outcomes:
+        elif ti.task_id in self.simulated_tasks_and_outcomes:
             # If we don't have a pre-determined outcome for this task, we must
             # simulate a success and a failure to obtain the actual result.
             if (
@@ -139,7 +132,35 @@ class HypothesisExecutor(DebugExecutor):
                 self.change_state(ti.key, State.FAILED)
                 ti.set_state(State.FAILED)
 
+            self._check_if_task_had_expectation(ti)
+        else:
+            # In this case, this task's result does not matter because
+            # it is not upstream of any of the tasks we care about. We
+            # just call it succeeded and move on.
+            self.change_state(ti.key, State.SUCCESS)
+            ti.set_state(State.SUCCESS)
+            self._check_if_task_had_expectation(ti)
+
         return ti.state == State.SUCCESS
+
+    def _check_if_task_had_expectation(self, task_instance: TaskInstance):
+        if task_instance.task_id in self.expected_tasks_and_outcomes:
+            assert (
+                self.expected_tasks_and_outcomes[task_instance.task_id]
+                in base.TaskOutcomes.EXPECTABLE_OUTCOMES
+            )
+            # We cannot know whether the task will fail or succeed. We can
+            # only know that it has been reached, and under the current
+            # conditions it will run.
+            self.actual_task_results[task_instance.task_id] = TaskOutcomes.RUNS
+            if (
+                self.matching_expectations.intersection(
+                    self.actual_task_results.keys()
+                )
+                == self.matching_expectations
+            ):
+                self.done = True
+                self.end()
 
 
 def _next_simulation(
@@ -159,29 +180,52 @@ def _next_simulation(
     return list(reversed(result))
 
 
+def _get_tasks_to_simulate(
+    dag: DAG, assummed_tasks_and_outs, expected_tasks_and_outs
+):
+    tasks_to_simulate: typing.Set[str] = set()
+    check_upstreams: typing.List[str] = list(
+        expected_tasks_and_outs.keys()
+    ) + list(assummed_tasks_and_outs.keys())
+    while check_upstreams:
+        current_task_id = check_upstreams.pop()
+        current_task = dag.task_dict[current_task_id]
+        tasks_to_simulate = tasks_to_simulate.union(
+            tasks_to_simulate, current_task.upstream_task_ids
+        )
+        check_upstreams.extend(current_task.upstream_task_ids)
+
+    return list(tasks_to_simulate)
+
+
 def _evaluate_assumption_and_expectation(
     assumed_tasks_and_outs, expected_tasks_and_outs, dag: DAG
 ):
-    tasks_to_simulate = dag.task_dict.keys() - assumed_tasks_and_outs.keys()
+    tasks_to_simulate = _get_tasks_to_simulate(
+        dag, assumed_tasks_and_outs, expected_tasks_and_outs
+    )
     simulation_results = []
     simulations_to_run = 2 ** len(tasks_to_simulate)
     print("Running a total of %r simulations." % simulations_to_run)
 
     for i in range(simulations_to_run):
+        if (i + 1) % 1000 == 0:
+            print(f"Simulation {i+1}")
         current_simulation: typing.List[typing.Tuple[str, TaskOutcome]] = (
             [(task_id, TaskOutcomes.FAILURE) for task_id in tasks_to_simulate]
             if i == 0
             else _next_simulation(current_simulation)
         )
+        current_simulation_dict = dict(current_simulation)
 
         hypothesis_executor = HypothesisExecutor(
             assumed_tasks_and_outs,
             expected_tasks_and_outs,
-            dict(current_simulation),
+            current_simulation_dict,
         )
         dag.clear()
         try:
-            dag.run(executor=hypothesis_executor)
+            dag.run(executor=hypothesis_executor, run_at_least_once=True)
             dag_fails = False
         except AirflowException:
             dag_fails = True
@@ -210,8 +254,6 @@ def _evaluate_assumption_and_expectation(
             )
         )
 
-        # TODO(pabloem): We should create a new ENUM for test outcomes and not
-        #    reutilizing the TaskOutcome ENUM.
         simulation_results.append(hypothesis_executor.actual_task_results)
 
         if any(
