@@ -23,11 +23,11 @@ import unittest
 
 from airflow.models import DagBag
 
-from dagwhat import assert_that
-from dagwhat import given
-from dagwhat import task
-from dagwhat import succeeds
-from dagwhat import will_run
+from dagcheck import assert_that
+from dagcheck import given
+from dagcheck import task
+from dagcheck import succeeds
+from dagcheck import will_run
 
 
 class TestLargerDagSamples(unittest.TestCase):

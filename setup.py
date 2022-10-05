@@ -17,7 +17,7 @@
 # under the License.
 
 
-"""Setup file for the Dagwhat library."""
+"""Setup file for the Dagcheck library."""
 
 import os
 from setuptools import setup, find_packages  # type: ignore
@@ -25,9 +25,9 @@ from setuptools import setup, find_packages  # type: ignore
 BUILD_ID = os.environ.get("BUILD_BUILDID", "0")
 
 setup(
-    name="dagwhat",
+    name="dagcheck",
     version="0.1" + "." + BUILD_ID,
-    packages=find_packages("dagwhat", exclude=['test']),
+    packages=find_packages("dagcheck", exclude=['test']),
     install_requires=["apache-airflow"],
     extras_require={
         'test': ["pytest", "pytest-nunit", "pytest-cov", "parameterized"]},

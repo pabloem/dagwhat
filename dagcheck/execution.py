@@ -16,7 +16,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""Execution classes and methods for DAG checks in dagwhat."""
+"""Execution classes and methods for DAG checks in dagcheck."""
 import random
 import time
 import typing
@@ -29,8 +29,8 @@ from airflow.utils.state import State
 from airflow.utils.context import Context
 from airflow.operators.python import PythonOperator
 
-from dagwhat import base
-from dagwhat.base import TaskOutcome, TaskOutcomes, FinalTaskTestCheck
+from dagcheck import base
+from dagcheck.base import TaskOutcome, TaskOutcomes, FinalTaskTestCheck
 
 
 class HypothesisExecutor(DebugExecutor):
@@ -238,7 +238,7 @@ def _evaluate_assumption_and_expectation(
         if i % 2000 == 0:
             elapsed = time.time() - test_start_time
             # pylint: disable=import-outside-toplevel,cyclic-import
-            from dagwhat.api import OPTIONS
+            from dagcheck.api import OPTIONS
 
             if elapsed > OPTIONS["max_simulation_time"]:
                 print(f"Stopping at a total of {i} random simulations.")
@@ -394,7 +394,7 @@ def run_check(check: "FinalTaskTestCheck"):
             )
 
         # pylint: disable=import-outside-toplevel,cyclic-import
-        from dagwhat.api import OPTIONS
+        from dagcheck.api import OPTIONS
         if time.time() - start_time > OPTIONS["max_simulation_time"]:
             break
 

@@ -22,11 +22,11 @@ import unittest
 
 from parameterized import parameterized  # type: ignore
 
-from dagwhat import api
-from dagwhat.test.dagwhat_test_example_dags_utils import basic_dag
+from dagcheck import api
+from dagcheck.test.dagcheck_test_example_dags_utils import basic_dag
 
 
-class DagwhatTaskSelectorTest(unittest.TestCase):
+class DagcheckTaskSelectorTest(unittest.TestCase):
     @parameterized.expand(
         [
             ("task_1", 1),

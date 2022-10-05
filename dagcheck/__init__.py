@@ -41,6 +41,6 @@ expected outcomes.
 """
 import airflow
 
-from dagwhat.api import *  # noqa
+from dagcheck.api import *  # noqa
 
 airflow.configuration.load_test_config()
