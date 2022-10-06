@@ -23,9 +23,9 @@ import unittest
 
 from parameterized import parameterized  # type: ignore
 
-from dagwhat import assert_that, given, the_dag, task, succeeds, will_run
-from dagwhat import returns, does_not_run, fails, may_run
-from dagwhat.test.dagwhat_test_example_dags_utils import (
+from dagcheck import assert_that, given, the_dag, task, succeeds, will_run
+from dagcheck import returns, does_not_run, fails, may_run
+from dagcheck.test.dagcheck_test_example_dags_utils import (
     basic_dag,
     branching_either_or_dag,
     dag_with_branching_operator,
@@ -33,7 +33,7 @@ from dagwhat.test.dagwhat_test_example_dags_utils import (
 )
 
 
-class DagwhatSimpleApiTests(unittest.TestCase):
+class DagcheckSimpleApiTests(unittest.TestCase):
     def test_api_base_case(self):
         thedag = basic_dag()
 
@@ -201,7 +201,7 @@ class DagwhatSimpleApiTests(unittest.TestCase):
         )
 
 
-class DagwhatEnsureCorrectUseTest(unittest.TestCase):
+class DagcheckEnsureCorrectUseTest(unittest.TestCase):
     @parameterized.expand(
         [
             (
@@ -219,7 +219,7 @@ class DagwhatEnsureCorrectUseTest(unittest.TestCase):
             del unused_test
         self.assertEqual(
             log.records[0].message,
-            "A dagwhat test has been defined, but was not tested.\n\t"
+            "A dagcheck test has been defined, but was not tested.\n\t"
             "Please wrap your test with assert_that to make sure checks"
             " will run.",
         )

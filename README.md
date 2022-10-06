@@ -1,7 +1,7 @@
 # DAG invariant testing
 
 The library in this directory is a prototype library to develop tests for
-Airflow. Dagwhat was created so that Airflow users could write tests for their
+Airflow. Dagcheck was created so that Airflow users could write tests for their
 DAGs with these characteristics:
 
 - They are easy to read through and understand
@@ -10,19 +10,23 @@ DAGs with these characteristics:
 - They run quickly as part of a developer's flow
 - They can be run in CI/CD and catch issues in the future
 
-Dagwhat provides 
+Dagcheck provides 
 
 TODO(pabloem): Add more information about the library
 
+## Configuring `dagcheck`
+
+TODO(pabloem)
+
 ## Caveats and pitfalls
 
-Dagwhat works by simulating DAG execution scenarios.
+Dagcheck works by simulating DAG execution scenarios.
 
 ### DAGs that are dependent on side effects
 
-Dagwhat simulates DAG executions, but it will not orchestrate any changes. If
+Dagcheck simulates DAG executions, but it will not orchestrate any changes. If
 parts of your DAG execution depend on side effects from other operators, then
-Dagwhat **will not know** about this.
+Dagcheck **will not know** about this.
 
 For example, consider a DAG that performs a database export operation, checks
 the output of those files, and uses them for something else. Something like:
@@ -52,7 +56,7 @@ In the above code sample, the following statement is true:
 - This is because there is an implicit assumption that if `data_warehouse_export`
     runs properly (i.e. succeeds), then `check_export_went_well` *will succeed*.
 
-But the following dagwhat test will fail:
+But the following dagcheck test will fail:
 
 ```python
 # Bad test example:
@@ -63,11 +67,11 @@ assert_that(
 )
 ```
 
-This test fails because Dagwhat does not know about the implicit assumption,
+This test fails because Dagcheck does not know about the implicit assumption,
 and assumes that the intermediate task between `data_warehouse_export` and
 `save_backup_to_storage` *may still fail*.
 
-There are a couple ways to write this test to work well with dagwhat. Here's
+There are a couple ways to write this test to work well with dagcheck. Here's
 one of them:
 
 ```python
@@ -82,7 +86,7 @@ assert_that(
 
 ## TODOs before first launch
 
-- Figure out the name of the library (dagwhat? dagtest? flowtest? ilikedags? flowcheck?, assertflow?)
+- Figure out the name of the library (dagcheck? dagtest? flowtest? ilikedags? flowcheck?, assertflow?)
 - Figure out whether this belongs to airflow or is an independent library
 - Implement DAG-failure and DAG-assumption checkers.
 
@@ -91,11 +95,11 @@ assert_that(
 - 2022/09/16: Picking up the development environment again
 
 I started developing the library as part of airflow/, and later put it in the
-`airflow_play/dagwhat/` directory. Because of this, a lot of import paths in the 
-`dagwhat/` directory are hacked up.
+`airflow_play/dagcheck/` directory. Because of this, a lot of import paths in the 
+`dagcheck/` directory are hacked up.
 
-Currently, dagwhat tests require an Airflow instance running. To set up the local
-development environment for dagwhat, you need to run:
+Currently, dagcheck tests require an Airflow instance running. To set up the local
+development environment for dagcheck, you need to run:
 
 ```shell
 # From airflow_play/

@@ -21,8 +21,8 @@
 import unittest
 from parameterized import parameterized  # type: ignore
 
-from dagwhat.dagwhat_execution import _next_simulation
-from dagwhat.base import TaskOutcomes
+from dagcheck.execution import _next_simulation
+from dagcheck.base import TaskOutcomes
 
 
 def _make_simulation_from_outcomes(outcomes):

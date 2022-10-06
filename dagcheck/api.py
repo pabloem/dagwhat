@@ -17,16 +17,16 @@
 # under the License.
 
 
-"""The public API definition for Dagwhat."""
+"""The public API definition for Dagcheck."""
 
 from airflow.models import DAG
-from dagwhat.base import DagSelector
-from dagwhat.base import DagTest
-from dagwhat.base import TaskTestCheckBuilder
-from dagwhat.base import TaskGroupSelector
-from dagwhat.base import TaskSelectorEnum
-from dagwhat.base import TaskOutcome
-from dagwhat.base import TaskOutcomes
+from dagcheck.base import DagSelector
+from dagcheck.base import DagTest
+from dagcheck.base import TaskTestCheckBuilder
+from dagcheck.base import TaskGroupSelector
+from dagcheck.base import TaskSelectorEnum
+from dagcheck.base import TaskOutcome
+from dagcheck.base import TaskOutcomes
 
 
 __all__ = [
@@ -45,7 +45,7 @@ __all__ = [
     "will_run",
 ]
 
-from dagwhat.dagwhat_execution import run_check
+from dagcheck.execution import run_check
 
 # TODO(pabloem): Document or improve how special configurations are passed.
 OPTIONS = {"max_simulation_time": 40}

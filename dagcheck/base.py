@@ -18,10 +18,10 @@
 
 # pylint: disable=R0903
 
-"""The base classes for the implementation of the Dagwhat module.
+"""The base classes for the implementation of the Dagcheck module.
 
 The classes, functions and constants in this file are the basic
-blocks used to build an internal representation for a Dagwhat
+blocks used to build an internal representation for a Dagcheck
 property-based test.
 """
 
@@ -190,7 +190,7 @@ class DagSelector:
 
 
 class FinalTaskTestCheck:
-    """An internal class that represents a fully constructed dagwhat check.
+    """An internal class that represents a fully constructed dagcheck check.
 
     It contains a DAG, a validation chain, and a series of assumptions in the
     TaskTestBuilder.
@@ -212,7 +212,7 @@ class FinalTaskTestCheck:
 
 
 class TaskTestCheckBuilder:
-    """An internal class that represents a dagwhat check that can be extended.
+    """An internal class that represents a dagcheck check that can be extended.
 
     It contains a validation chain that can be used to check against a DAG or
     series of tasks.
@@ -252,7 +252,7 @@ class TaskTestCheckBuilder:
             #   tests are used incorrectly.
             # raise AssertionError(
             _LOGGER.error(
-                "A dagwhat test has been defined, but was not tested.\n\t"
+                "A dagcheck test has been defined, but was not tested.\n\t"
                 "Please wrap your test with assert_that to make sure checks "
                 "will run."
             )
@@ -276,7 +276,7 @@ class TaskTestCheckBuilder:
 
 
 class TaskTestBuilder:
-    """An internal class that represents a dagwhat check that can be extended.
+    """An internal class that represents a dagcheck check that can be extended.
 
     It contains a DAG, a validation chain, and a series of assumptions in the
     TaskTestBuilder.
@@ -293,7 +293,7 @@ class TaskTestBuilder:
         self.dag_test = dag_test
         self.condition_chain = [(task_selector, outcome)]
 
-        # Dagwhat should support multi-and conditions or multi-or conditions.
+        # Dagcheck should support multi-and conditions or multi-or conditions.
         # Because mixed AND / OR evaluations are not associative, supporting
         # a mix of these conditions would create ambiguity in the API.
         # TODO(pabloem): Add support to multi-OR conditions, not just multi-AND
@@ -320,7 +320,7 @@ class TaskTestBuilder:
             #   tests are used incorrectly.
             # raise AssertionError(
             _LOGGER.error(
-                "A dagwhat test has been defined, but was not tested.\n\t"
+                "A dagcheck test has been defined, but was not tested.\n\t"
                 "Please wrap your test with assert_that to make sure checks "
                 "will run."
             )
@@ -354,7 +354,7 @@ class TaskTestBuilder:
 
 
 class DagTest:
-    """The first class used to build a dagwhat check.
+    """The first class used to build a dagcheck check.
 
     This class contains a reference to the Airflow DAG that we're testing,
     and can received assumptions via the `when` method.
@@ -378,7 +378,7 @@ class DagTest:
             # TODO(pabloem): Figure out how to throw an error when
             #   tests are used incorrectly.
             _LOGGER.error(
-                "A dagwhat test has been defined, but was not tested.\n\t"
+                "A dagcheck test has been defined, but was not tested.\n\t"
                 "Please wrap your test with assert_that to make sure checks "
                 "will run."
             )
