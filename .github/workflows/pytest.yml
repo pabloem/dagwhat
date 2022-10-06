@@ -25,4 +25,4 @@ jobs:
         sleep 60
     - name: Running unit tests
       run: |
-        pytest dagwhat
+        pytest dagcheck
