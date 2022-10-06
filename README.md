@@ -3,8 +3,11 @@
 Note: **Contributions welcome**. I hope this library will belong to the Airflow
 community.
 
-The library in this directory is a prototype library to develop tests for
-Airflow. Dagcheck was created so that Airflow users could write tests for their
+Dagcheck is a framework to assert for DAG invariants. Users of dagcheck can
+define DAG invariants to test via assertions, and dagcheck will generate DAG
+run scenarios that verify these invariants.
+
+Dagcheck was created so that Airflow users could write tests for their
 DAGs with these characteristics:
 
 - They are easy to read through and understand

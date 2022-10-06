@@ -22,6 +22,11 @@
 import os
 from setuptools import setup, find_packages  # type: ignore
 
+from pathlib import Path
+
+this_directory = Path(__file__).parent
+long_description = (this_directory / "README.md").read_text()
+
 BUILD_ID = os.environ.get("BUILD_BUILDID", "0")
 
 setup(
@@ -29,10 +34,8 @@ setup(
     author="Pablo E.",
     author_email="pabloem@apache.org",
     description="A local testing framework for Airflow DAGs.",
-    long_description="Dagcheck is a framework to assert for DAG invariants. "
-    "Users of dagcheck can define DAG invariants to test via DAG "
-    "assertions, and dagcheck will generate DAG run scenarios that "
-    "verify these invariants.",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     version="0.1" + "." + BUILD_ID,
     packages=find_packages(),
     install_requires=["apache-airflow"],
