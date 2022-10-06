@@ -1,4 +1,7 @@
-# DAG invariant testing
+# Airflow DAG invariant testing
+
+Note: **Contributions welcome**. I hope this library will belong to the Airflow
+community.
 
 The library in this directory is a prototype library to develop tests for
 Airflow. Dagcheck was created so that Airflow users could write tests for their

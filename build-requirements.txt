@@ -4,3 +4,4 @@ mypy
 parameterized
 pylint
 pytest
+twine

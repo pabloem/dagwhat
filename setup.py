@@ -26,9 +26,28 @@ BUILD_ID = os.environ.get("BUILD_BUILDID", "0")
 
 setup(
     name="dagcheck",
+    author="Pablo E.",
+    author_email="pabloem@apache.org",
+    description="A local testing framework for Airflow DAGs.",
+    long_description="Dagcheck is a framework to assert for DAG invariants. "
+    "Users of dagcheck can define DAG invariants to test via DAG "
+    "assertions, and dagcheck will generate DAG run scenarios that "
+    "verify these invariants.",
     version="0.1" + "." + BUILD_ID,
-    packages=find_packages("dagcheck", exclude=['test']),
+    packages=find_packages(),
     install_requires=["apache-airflow"],
+    keywords=["airflow", "testing", "apache airflow", "apache"],
     extras_require={
-        'test': ["pytest", "pytest-nunit", "pytest-cov", "parameterized"]},
+        "test": ["pytest", "pytest-nunit", "pytest-cov", "parameterized"]
+    },
+    package_url="https://github.com/bitybyte/dagcheck",
+    package_download_url="https://pypi.python.org/pypi/dagcheck",
+    classifiers=[
+        "Intended Audience :: End Users/Desktop",
+        "License :: OSI Approved :: Apache Software License",
+        "Programming Language :: Python :: 3",
+        "Topic :: Software Development :: Libraries",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+        "Topic :: Software Development :: Testing",
+    ],
 )

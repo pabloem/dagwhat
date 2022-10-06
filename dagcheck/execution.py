@@ -17,6 +17,7 @@
 # under the License.
 
 """Execution classes and methods for DAG checks in dagcheck."""
+import logging
 import random
 import time
 import typing
@@ -230,7 +231,9 @@ def _evaluate_assumption_and_expectation(
         dag, assumed_tasks_and_outs, expected_tasks_and_outs
     )
     simulation_results: typing.List[typing.Mapping[str, TaskOutcome]] = []
-    print("Running a total of %r simulations." % 2 ** len(tasks_to_simulate))
+    logging.info(
+        "Running a total of %r simulations.", 2 ** len(tasks_to_simulate)
+    )
 
     for i, current_simulation in enumerate(
         _generate_simulations(tasks_to_simulate)
@@ -241,7 +244,7 @@ def _evaluate_assumption_and_expectation(
             from dagcheck.api import OPTIONS
 
             if elapsed > OPTIONS["max_simulation_time"]:
-                print(f"Stopping at a total of {i} random simulations.")
+                logging.info("Stopping at a total of %s random simulations.", i)
                 return False, False, simulation_results
         current_simulation_dict = dict(current_simulation)
 
@@ -266,19 +269,17 @@ def _evaluate_assumption_and_expectation(
             # Will not consider this run because it does not meet assumptions.
             continue
 
-        print(
+        logging.debug(
             "Dag Fails: %s"
             "\n\tSimulated t&o: %r"
             "\n\tAssumed t&o: %r"
             "\n\tExpected t&o: %r"
-            "\n\tActual t&o: %r"
-            % (
-                dag_fails,
-                hypothesis_executor.simulated_tasks_and_outcomes,
-                hypothesis_executor.assumed_tasks_and_outcomes,
-                hypothesis_executor.expected_tasks_and_outcomes,
-                hypothesis_executor.actual_task_results,
-            )
+            "\n\tActual t&o: %r",
+            dag_fails,
+            hypothesis_executor.simulated_tasks_and_outcomes,
+            hypothesis_executor.assumed_tasks_and_outcomes,
+            hypothesis_executor.expected_tasks_and_outcomes,
+            hypothesis_executor.actual_task_results,
         )
 
         simulation_results.append(hypothesis_executor.actual_task_results)
@@ -369,14 +370,14 @@ def run_check(check: "FinalTaskTestCheck"):
             all_resulting_outcomes.append(actual_tasks_and_outs)
 
             if instant_failure:
-                print("RAN %s iterations" % len(all_resulting_outcomes))
+                logging.debug("RAN %s iterations", len(all_resulting_outcomes))
                 raise AssertionError(
                     "Failures - \n\tExpected: %r \n\tActuals: %r"
                     % (expected_tasks_and_outs, actual_tasks_and_outs)
                 )
 
             if instant_success:
-                print("RAN %s iterations" % len(all_resulting_outcomes))
+                logging.debug("RAN %s iterations", len(all_resulting_outcomes))
                 return
 
         # If we are not successful, then we return an assertion error.
@@ -395,6 +396,7 @@ def run_check(check: "FinalTaskTestCheck"):
 
         # pylint: disable=import-outside-toplevel,cyclic-import
         from dagcheck.api import OPTIONS
+
         if time.time() - start_time > OPTIONS["max_simulation_time"]:
             break
 
