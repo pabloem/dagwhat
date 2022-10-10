@@ -16,9 +16,40 @@ DAGs with these characteristics:
 - They run quickly as part of a developer's flow
 - They can be run in CI/CD and catch issues in the future
 
-Dagcheck provides 
+`dagcheck` is especially useful for DAGs that are complex, and that change
+over time. Tests from `dagcheck` allow you to offload complex dependency
+checks from your head onto an automatic test.
 
-TODO(pabloem): Add more information about the library
+## Examples
+
+Consider this [example of a complex DAG](https://airflow.apache.org/docs/apache-airflow/stable/usage-cli.html#exporting-dag-structure-as-an-image).
+This DAG has several possible execution paths - and in case of failures, we may
+want to ensure that it will not leak resources. For example, we may write a
+test that checks that if we create a resource successfully, we will always
+clean it up independently of any failure scenario.
+
+For example, if the task `create_entry_group` succeeds, then we check that
+the task `delete_entry_group` will **always** run, like so:
+
+
+```python
+example_dag = DagBag().get_dag("example_complex")
+
+# First check: If we create an entry group, we want to make sure
+# it will be cleaned up.
+assert_that(
+    given(example_dag)
+    .when(task("create_entry_group"), succeeds())
+    .then(task("delete_entry_group"), will_run())
+)
+```
+
+By creating this test, and running it in CI, we can quickly make sure that
+our DAG will behave as expected, no matter how much it changes.
+
+To see other examples of usage of the API, look at [our unit tests](
+dagcheck/tests/dagcheck_simple_api_test.py) and our [small sample DAGs](
+dagcheck/tests/dagcheck_test_example_dags_utils.py).
 
 ## Configuring `dagcheck`
 
@@ -82,10 +113,15 @@ one of them:
 
 ```python
 # Good test example:
+
 assert_that(
   given(the_dag)
   .when('data_warehouse_export', succeeds())
-  .and_('check_export_went_well', succeeds())
+  .then('check_export_went_well', will_run())
+
+assert_that(
+  given(the_dag)
+  .when('check_export_went_well', succeeds())
   .then('save_backup_to_storage', will_run())
 )
 ```

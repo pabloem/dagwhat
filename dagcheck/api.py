@@ -20,8 +20,8 @@
 """The public API definition for Dagcheck."""
 
 from airflow.models import DAG
-from dagcheck.base import DagSelector
 from dagcheck.base import DagTest
+from dagcheck.base import DagSelector
 from dagcheck.base import TaskTestCheckBuilder
 from dagcheck.base import TaskGroupSelector
 from dagcheck.base import TaskSelectorEnum
@@ -33,13 +33,10 @@ __all__ = [
     "assert_that",
     "given",
     "task",
-    "tasks",
-    "any_task",
     "succeeds",
     "fails",
     "runs",
     "returns",
-    "the_dag",
     "does_not_run",
     "may_run",
     "will_run",
@@ -73,35 +70,38 @@ def task(task_id: str):
     return TaskGroupSelector(ids=[task_id], group_is=TaskSelectorEnum.ALL)
 
 
+# TODO(#1): Support multiple task selection.
 def tasks(*ids: str):
     """Select a group of tasks via their IDs."""
     return TaskGroupSelector(ids=ids, group_is=TaskSelectorEnum.ALL)
 
 
-def any_task(with_id: str = None, with_operator=None):
-    """Select any task matching the input ID or input operator.
-
-    This selector defines the family of task groups with a single task matching
-    the ID or the operator.
-    """
-    return TaskGroupSelector(
-        ids=[with_id] if with_id else [],
-        operators=[with_operator] if with_operator else [],
-        group_is=TaskSelectorEnum.ANY,
-    )
-
-
-def all_tasks(with_id=None, with_operator=None):
-    """Select all tasks matching the input ID or input operator.
-
-    This selector defines the family of task groups with every task matching
-    the ID or the operator.
-    """
-    return TaskGroupSelector(
-        ids=[with_id], operators=[with_operator], group_is=TaskSelectorEnum.ALL
-    )
+# def any_task(with_id: str = None, with_operator=None):
+#     """Select any task matching the input ID or input operator.
+#
+#     This selector defines the family of task groups with a single task
+#     matching the ID or the operator.
+#     """
+#     return TaskGroupSelector(
+#         ids=[with_id] if with_id else [],
+#         operators=[with_operator] if with_operator else [],
+#         group_is=TaskSelectorEnum.ANY,
+#     )
 
 
+# def all_tasks(with_id=None, with_operator=None):
+#     """Select all tasks matching the input ID or input operator.
+#
+#     This selector defines the family of task groups with every task matching
+#     the ID or the operator.
+#     """
+#     return TaskGroupSelector(
+#         ids=[with_id], operators=[with_operator],
+#         group_is=TaskSelectorEnum.ALL
+#     )
+
+
+# TODO(#2): Support DAG selection (when(the_dag(), runs()).then(...)
 def the_dag():
     """A selector representing the whole DAG execution."""
     return DagSelector

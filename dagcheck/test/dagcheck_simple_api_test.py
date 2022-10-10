@@ -23,7 +23,7 @@ import unittest
 
 from parameterized import parameterized  # type: ignore
 
-from dagcheck import assert_that, given, the_dag, task, succeeds, will_run
+from dagcheck import assert_that, given, task, succeeds, will_run
 from dagcheck import returns, does_not_run, fails, may_run
 from dagcheck.test.dagcheck_test_example_dags_utils import (
     basic_dag,
@@ -106,6 +106,8 @@ class DagcheckSimpleApiTests(unittest.TestCase):
     def test_dag_failure_or_success_check(self):
         """Test only that the API works as expected."""
         self.skipTest("DAG selection for validations is not supportd yet.")
+        from dagcheck import the_dag
+
         thedag = basic_dag()
 
         with self.assertRaises(AssertionError):
